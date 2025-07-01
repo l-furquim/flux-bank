@@ -1,41 +1,53 @@
 package com.fluxbank.wallet_service.domain.service;
 
-import com.fluxbank.wallet_service.application.dto.CreateWalletDto;
+import com.fluxbank.wallet_service.application.dto.CreateWalletRequest;
+import com.fluxbank.wallet_service.application.port.WalletPort;
+import com.fluxbank.wallet_service.domain.enums.Currency;
 import com.fluxbank.wallet_service.domain.enums.WalletStatus;
 import com.fluxbank.wallet_service.domain.exception.DuplicatedWalletCurrencyException;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
+import com.fluxbank.wallet_service.infrastructure.service.TokenService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
-public class WalletDomainService {
+public class WalletDomainService implements WalletPort {
 
     private final WalletPersistenceAdapter adapter;
+    private final TokenService tokenService;
 
-    public WalletDomainService(WalletPersistenceAdapter adapter) {
+    public WalletDomainService(WalletPersistenceAdapter adapter, TokenService tokenService) {
         this.adapter = adapter;
+        this.tokenService = tokenService;
     }
 
-    public Wallet createWallet(CreateWalletDto dto){
+    public Wallet createWallet(CreateWalletRequest dto, String token){
+        UUID userId = UUID.fromString(tokenService.getTokenData(token).getUserId());
 
-        boolean alreadyHaveCurrentCurrencyWallet = adapter.findWalletsByUserId(dto.userId())
+        Currency currencyConverted = Currency.fromValue(dto.currency());
+
+        boolean alreadyHaveCurrentCurrencyWallet = adapter.findWalletsByUserId(userId)
                 .stream()
-                .anyMatch(w -> w.getCurrency().equals(dto.currency()));
+                .anyMatch(w -> w.getCurrency().equals(currencyConverted));
 
         if(alreadyHaveCurrentCurrencyWallet) {
             throw new DuplicatedWalletCurrencyException("Cannot have two wallets with the same currency");
         }
+
+
+
 
         Wallet wallet =  Wallet.builder()
                 .createdAt(LocalDateTime.now())
                 .walletStatus(WalletStatus.ACTIVE)
                 .balance(BigDecimal.ZERO)
                 .blockedAmount(BigDecimal.ZERO)
-                .userId(dto.userId())
-                .currency(dto.currency())
+                .userId(userId)
+                .currency(currencyConverted)
                 .build();
 
         adapter.saveWallet(wallet);

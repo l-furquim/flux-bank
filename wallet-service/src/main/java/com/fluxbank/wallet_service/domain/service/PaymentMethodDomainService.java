@@ -17,18 +17,20 @@ public class PaymentMethodDomainService {
 
     public PaymentMethods addPaymentMethod(AddPaymentMethodDto dto) {
 
-        PaymentMethods paymentMethods = PaymentMethods.builder()
-               .lastFourDigits(dto.lastFourDigits())
-               .methodType(dto.methodType())
-               .createdAt(LocalDateTime.now())
-               .displayName(dto.displayName())
-               .expiryDate(dto.expireDate())
-               .isDefault(dto.setAsDefault())
-               .metadata(dto.metadata())
-               .status(MethodStatus.ACTIVE)
-                .wallet()
-               .build();
+//        PaymentMethods paymentMethods = PaymentMethods.builder()
+//               .lastFourDigits(dto.lastFourDigits())
+//               .methodType(dto.methodType())
+//               .createdAt(LocalDateTime.now())
+//               .displayName(dto.displayName())
+//               .expiryDate(dto.expireDate())
+//               .isDefault(dto.setAsDefault())
+//               .metadata(dto.metadata())
+//               .status(MethodStatus.ACTIVE)
+//                .wallet()
+//               .build();
 
+
+        return null;
     }
 
 }
