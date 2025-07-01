@@ -1,6 +1,6 @@
 package com.fluxbank.wallet_service.infrastructure.handlers;
 
-import com.fluxbank.wallet_service.domain.exception.DuplicatedWalletCurrencyException;
+import com.fluxbank.wallet_service.domain.exception.wallet.DuplicatedWalletCurrencyException;
 import com.fluxbank.wallet_service.infrastructure.handlers.dto.ExceptionHandlerResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;

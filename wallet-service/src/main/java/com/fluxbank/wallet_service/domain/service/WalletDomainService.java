@@ -1,10 +1,14 @@
 package com.fluxbank.wallet_service.domain.service;
 
 import com.fluxbank.wallet_service.application.dto.CreateWalletRequest;
+import com.fluxbank.wallet_service.application.dto.DepositInWalletRequest;
+import com.fluxbank.wallet_service.application.dto.TransactionResult;
 import com.fluxbank.wallet_service.application.port.WalletPort;
 import com.fluxbank.wallet_service.domain.enums.Currency;
 import com.fluxbank.wallet_service.domain.enums.WalletStatus;
-import com.fluxbank.wallet_service.domain.exception.DuplicatedWalletCurrencyException;
+import com.fluxbank.wallet_service.domain.exception.wallet.DuplicatedWalletCurrencyException;
+import com.fluxbank.wallet_service.domain.exception.wallet.InvalidDepositException;
+import com.fluxbank.wallet_service.domain.exception.wallet.WalletNotFoundException;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
 import com.fluxbank.wallet_service.infrastructure.service.TokenService;
@@ -38,9 +42,6 @@ public class WalletDomainService implements WalletPort {
             throw new DuplicatedWalletCurrencyException("Cannot have two wallets with the same currency");
         }
 
-
-
-
         Wallet wallet =  Wallet.builder()
                 .createdAt(LocalDateTime.now())
                 .walletStatus(WalletStatus.ACTIVE)
@@ -53,6 +54,25 @@ public class WalletDomainService implements WalletPort {
         adapter.saveWallet(wallet);
 
         return wallet;
+    }
+
+    public TransactionResult deposit(DepositInWalletRequest data){
+        Wallet wallet = adapter.findWalletById(data.walletId());
+
+        if(wallet == null) {
+            throw new WalletNotFoundException();
+        }
+
+        if(wallet.getWalletStatus().equals(WalletStatus.BLOCKED) | wallet.getWalletStatus().equals(WalletStatus.CLOSED)) {
+            throw new InvalidDepositException();
+        }
+
+        if(data.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidDepositException();
+        }
+
+
+
     }
 
 }

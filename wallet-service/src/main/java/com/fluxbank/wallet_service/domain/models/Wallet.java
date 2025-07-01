@@ -40,5 +40,8 @@ public class Wallet {
         return getAvailableBalance().compareTo(amount) >= 0;
     }
 
+    public void deposit(BigDecimal amount){
+        this.balance = this.balance.add(amount);
+    }
 
 }

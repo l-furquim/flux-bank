@@ -30,8 +30,6 @@ public class WalletTransaction {
 
     private TransactionStatus status;
 
-    private LocalDateTime processedAt;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
