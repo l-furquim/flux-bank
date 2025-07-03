@@ -1,8 +1,7 @@
 package com.fluxbank.wallet_service.application.controller.impl;
 
 import com.fluxbank.wallet_service.application.controller.IWalletController;
-import com.fluxbank.wallet_service.application.dto.CreateWalletRequest;
-import com.fluxbank.wallet_service.application.dto.CreateWalletResponse;
+import com.fluxbank.wallet_service.application.dto.*;
 import com.fluxbank.wallet_service.application.port.WalletPort;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,11 +23,22 @@ public class WalletControllerImpl implements IWalletController {
     @PostMapping("/create")
     public ResponseEntity<CreateWalletResponse> create(
             @Valid @RequestBody CreateWalletRequest request,
-            @RequestHeader(value="Authorization") String malformedToken
+            @RequestHeader("X-User-Id") String userId
     ) {
-        Wallet wallet = port.createWallet(request, malformedToken.split("Bearer ")[1]);
+        Wallet wallet = port.createWallet(request, userId);
 
         return ResponseEntity.status(201).body(new CreateWalletResponse(wallet));
+    }
+
+    @PostMapping("/deposit")
+    public ResponseEntity<DepositInWalletResponse> deposit(
+            @Valid @RequestBody DepositInWalletRequest request
+    ) {
+        TransactionResult result = port.deposit(request);
+
+        return ResponseEntity.ok().body(new DepositInWalletResponse(
+                result
+        ));
     }
 
 

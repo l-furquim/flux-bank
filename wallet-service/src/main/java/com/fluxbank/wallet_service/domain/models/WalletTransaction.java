@@ -8,11 +8,14 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @Builder
 public class WalletTransaction {
+
+    private UUID id;
 
     private Wallet wallet;
 
@@ -23,8 +26,6 @@ public class WalletTransaction {
     private BigDecimal balanceBefore;
 
     private BigDecimal balanceAfter;
-
-    private String externalReference;
 
     private String description;
 

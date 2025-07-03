@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record TransactionResult(
-        UUID walletId,
+        UUID transactionId,
         Currency currency,
         BigDecimal amount,
         LocalDateTime transitionedAt

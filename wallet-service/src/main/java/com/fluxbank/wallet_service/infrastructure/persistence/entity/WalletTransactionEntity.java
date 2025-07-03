@@ -42,17 +42,12 @@ public class WalletTransactionEntity {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal balanceAfter;
 
-    @Column(length = 255)
-    private String externalReference;
-
     @Column(length = 500)
     private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TransactionStatus status;
-
-    private LocalDateTime processedAt;
 
     @CreationTimestamp
     @Column(nullable = false)

@@ -4,13 +4,12 @@ import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Component
 public class WalletMapper {
 
     public WalletEntity toEntity(Wallet wallet) {
         return WalletEntity.builder()
+                .id(wallet.getId())
                 .createdAt(wallet.getCreatedAt())
                 .balance(wallet.getBalance())
                 .blockedAmount(wallet.getBlockedAmount())
