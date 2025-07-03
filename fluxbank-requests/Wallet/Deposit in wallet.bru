@@ -1,0 +1,21 @@
+meta {
+  name: Deposit in wallet
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://localhost:8081/api/v1/wallets/deposit
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "amount": -10,
+    "walletId": "48473438-28df-41cd-a17f-59365ba3f8dd",
+    "type": "DEBIT",
+    "metadata": "{pix: aaaaaa}",
+    "description": "Fazendo pix pro meu pai 2"
+  }
+}

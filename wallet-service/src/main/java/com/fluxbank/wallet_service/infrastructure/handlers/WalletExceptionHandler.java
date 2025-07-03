@@ -3,15 +3,21 @@ package com.fluxbank.wallet_service.infrastructure.handlers;
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
 import com.fluxbank.wallet_service.domain.exception.wallet.DuplicatedWalletCurrencyException;
 import com.fluxbank.wallet_service.domain.exception.wallet.InvalidDepositException;
+import com.fluxbank.wallet_service.domain.exception.wallet.WalletNotFoundException;
 import com.fluxbank.wallet_service.infrastructure.handlers.dto.ExceptionHandlerResponse;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletTransactionPersistenceAdapter;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class WalletExceptionHandler extends GenericExceptionHandler {
 
     private final WalletTransactionPersistenceAdapter adapter;
@@ -24,6 +30,7 @@ public class WalletExceptionHandler extends GenericExceptionHandler {
     public ResponseEntity<ExceptionHandlerResponse> handleDuplicatedWallet(
             DuplicatedWalletCurrencyException ex, HttpServletRequest request
     ) {
+
         return this.buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());
     }
 
@@ -40,6 +47,17 @@ public class WalletExceptionHandler extends GenericExceptionHandler {
     ) {
         adapter.updateWalletTransactionStatus(ex.getTransactionId(), TransactionStatus.FAILED);
 
+        log.error("Transação invalida {}", ex.getTransactionId());
+
         return this.buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
     }
+
+    @ExceptionHandler(WalletNotFoundException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleWalletNotFound(
+            WalletNotFoundException ex, HttpServletRequest request
+    ) {
+        return this.buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
+    }
+
+
 }

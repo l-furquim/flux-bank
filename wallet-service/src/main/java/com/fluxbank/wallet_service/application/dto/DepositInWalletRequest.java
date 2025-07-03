@@ -12,8 +12,7 @@ public record DepositInWalletRequest(
         @NotNull BigDecimal amount,
 
         @Schema(description = "Id da carteira referente", example = "qweoiqwjeoiqwjewq")
-
-        @NotNull UUID walletId,
+        @NotNull String walletId,
 
         @Schema(description = "Tipo de deposito a ser realizado", example = "CREDIT, DEBIT, PIX, REFUND")
         @NotNull TransactionType type,

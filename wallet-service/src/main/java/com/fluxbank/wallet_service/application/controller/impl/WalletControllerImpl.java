@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/wallets")
 @SecurityRequirement(name = "bearerAuth")
@@ -22,12 +24,12 @@ public class WalletControllerImpl implements IWalletController {
 
     @PostMapping("/create")
     public ResponseEntity<CreateWalletResponse> create(
-            @Valid @RequestBody CreateWalletRequest request,
-            @RequestHeader("X-User-Id") String userId
+            @Valid @RequestBody CreateWalletRequest request
+            // @RequestHeader("X-User-Id") String userId
     ) {
-        Wallet wallet = port.createWallet(request, userId);
+        port.createWallet(request, UUID.fromString("89d00d26-5eb1-464c-a931-965c0e09077"));
 
-        return ResponseEntity.status(201).body(new CreateWalletResponse(wallet));
+        return ResponseEntity.status(201).body(new CreateWalletResponse("Wallet criada com sucesso"));
     }
 
     @PostMapping("/deposit")

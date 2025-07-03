@@ -54,7 +54,6 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            notApprovedRequests.increment();
             return handleUnauthorized(exchange, "Token JWT necessário");
         }
 
@@ -72,7 +71,6 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
 
             if (tokenData.isExpired()) {
                 tokenService.removeTokenFromCache(token);
-                notApprovedRequests.increment();
                 return handleUnauthorized(exchange, "Token expirado");
             }
 
@@ -88,7 +86,7 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
             Duration expiration = Duration.between(Instant.now(), tokenData.getExpiresAt());
 
             if (expiration.isNegative() || expiration.isZero()) {
-                notApprovedRequests.increment();
+
                 return handleUnauthorized(exchange, "Token expirado");
             }
 
@@ -100,7 +98,6 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
 
         } catch (JwtException e) {
             log.warn("Token JWT inválido: {}", e.getMessage());
-            notApprovedRequests.increment();
             return handleUnauthorized(exchange, "Token JWT inválido");
         }
     }
@@ -169,6 +166,8 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
     }
 
     private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
+        notApprovedRequests.increment();
+
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().add("Content-Type", "application/json");

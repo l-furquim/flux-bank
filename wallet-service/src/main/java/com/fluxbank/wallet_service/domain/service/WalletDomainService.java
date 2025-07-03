@@ -15,13 +15,16 @@ import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
 import com.fluxbank.wallet_service.infrastructure.service.TokenService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class WalletDomainService implements WalletPort {
 
@@ -33,12 +36,12 @@ public class WalletDomainService implements WalletPort {
         this.walletTransactionService = walletTransactionService;
     }
 
-    public Wallet createWallet(CreateWalletRequest dto, String suserId){
-        UUID userId = UUID.fromString(suserId);
-
+    public void createWallet(CreateWalletRequest dto, UUID userId){
         Currency currencyConverted = Currency.fromValue(dto.currency());
 
-        boolean alreadyHaveCurrentCurrencyWallet = adapter.findWalletsByUserId(userId)
+        List<Wallet> userWallets = adapter.findWalletsByUserId(userId);
+
+        boolean alreadyHaveCurrentCurrencyWallet = userWallets
                 .stream()
                 .anyMatch(w -> w.getCurrency().equals(currencyConverted));
 
@@ -46,8 +49,7 @@ public class WalletDomainService implements WalletPort {
             throw new DuplicatedWalletCurrencyException("Cannot have two wallets with the same currency");
         }
 
-        Wallet wallet =  Wallet.builder()
-                .createdAt(LocalDateTime.now())
+        Wallet wallet = Wallet.builder()
                 .walletStatus(WalletStatus.ACTIVE)
                 .balance(BigDecimal.ZERO)
                 .blockedAmount(BigDecimal.ZERO)
@@ -56,12 +58,16 @@ public class WalletDomainService implements WalletPort {
                 .build();
 
         adapter.saveWallet(wallet);
-
-        return wallet;
     }
 
     public TransactionResult deposit(DepositInWalletRequest data){
-        Wallet wallet = adapter.findWalletById(data.walletId());
+        UUID walletId = UUID.fromString(data.walletId());
+
+        Wallet wallet = adapter.findWalletById(walletId);
+
+        if(wallet == null) {
+            throw new WalletNotFoundException();
+        }
 
         WalletTransaction transaction = walletTransactionService.create(new CreateWalletTransactionDto(
                 wallet,
@@ -72,13 +78,9 @@ public class WalletDomainService implements WalletPort {
                 Optional.of(TransactionStatus.COMPLETED)
         ));
 
-        if(wallet == null) {
-            throw new WalletNotFoundException();
-        }
-
         wallet.deposit(data.amount());
 
-        adapter.saveWallet(wallet);
+        adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
 
         return new TransactionResult(
                 transaction.getId(),

@@ -5,8 +5,10 @@ import com.fluxbank.wallet_service.application.dto.DepositInWalletRequest;
 import com.fluxbank.wallet_service.application.dto.TransactionResult;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 
+import java.util.UUID;
+
 public interface WalletPort {
 
-    Wallet createWallet(CreateWalletRequest dto, String userId);
+    void createWallet(CreateWalletRequest dto, UUID userId);
     TransactionResult deposit(DepositInWalletRequest data);
 }

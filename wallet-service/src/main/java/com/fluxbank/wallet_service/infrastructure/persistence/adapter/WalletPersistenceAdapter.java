@@ -5,22 +5,39 @@ import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntit
 import com.fluxbank.wallet_service.infrastructure.persistence.mapper.WalletMapper;
 import com.fluxbank.wallet_service.infrastructure.persistence.repository.WalletJpaRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class WalletPersistenceAdapter {
 
-    private WalletJpaRepository repository;
-    private WalletMapper mapper;
+    private final WalletJpaRepository repository;
+    private final WalletMapper mapper;
+
+    public WalletPersistenceAdapter(WalletJpaRepository repository, WalletMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
+    }
 
     public void saveWallet(Wallet wallet){
         WalletEntity walletEntity = mapper.toEntity(wallet);
 
+        log.debug("Saving wallet in db {}", wallet);
+
         repository.save(walletEntity);
+
+        repository.flush();
+    }
+
+    @Transactional
+    public void updateWalletBalance(BigDecimal balance, UUID id){
+        this.repository.updateWalletBalance(balance, id);
     }
 
     public Wallet findWalletById(UUID walletId) {
@@ -56,9 +73,11 @@ public class WalletPersistenceAdapter {
     }
 
     public List<Wallet> findWalletsByUserId(UUID userId) {
-        List<WalletEntity> walletsFonded = repository.findByUserId(userId);
+        List<WalletEntity> walletsFounded = repository.findByUserId(userId);
 
-         return walletsFonded.stream().map(w -> mapper.toDomain(w)
+        log.debug("Wallets founded {}", walletsFounded);
+
+         return walletsFounded.stream().map(w -> mapper.toDomain(w)
          ).toList();
     }
 

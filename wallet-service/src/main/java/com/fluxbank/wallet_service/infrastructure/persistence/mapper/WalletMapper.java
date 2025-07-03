@@ -9,14 +9,11 @@ public class WalletMapper {
 
     public WalletEntity toEntity(Wallet wallet) {
         return WalletEntity.builder()
-                .id(wallet.getId())
-                .createdAt(wallet.getCreatedAt())
                 .balance(wallet.getBalance())
                 .blockedAmount(wallet.getBlockedAmount())
                 .currency(wallet.getCurrency())
                 .walletStatus(wallet.getWalletStatus())
                 .userId(wallet.getUserId())
-                .id(wallet.getId())
                 .build();
     }
 

@@ -30,14 +30,9 @@ public class WalletTransactionMapper {
                 .build();
     }
 
-    public WalletTransactionEntity toEntity(WalletTransaction walletTransaction, Wallet wallet) {
-        WalletEntity walletEntity = new WalletEntity();
-
-        walletEntity.setId(wallet.getId());
-
+    public WalletTransactionEntity toEntity(WalletTransaction walletTransaction, WalletEntity wallet) {
         return WalletTransactionEntity.builder()
-                .wallet(walletEntity)
-                .createdAt(walletTransaction.getCreatedAt())
+                .wallet(wallet)
                 .balanceAfter(walletTransaction.getBalanceAfter())
                 .balanceBefore(walletTransaction.getBalanceBefore())
                 .transactionType(walletTransaction.getTransactionType())

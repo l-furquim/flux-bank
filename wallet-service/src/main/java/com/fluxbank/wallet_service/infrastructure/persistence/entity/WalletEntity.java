@@ -47,11 +47,9 @@ public class WalletEntity {
     private BigDecimal blockedAmount;
 
     @CreationTimestamp
-    @NotNull
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @NotNull
     private LocalDateTime updatedAt;
 
 }

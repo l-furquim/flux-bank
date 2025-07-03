@@ -7,12 +7,13 @@ import com.fluxbank.wallet_service.domain.enums.WalletStatus;
 import com.fluxbank.wallet_service.domain.exception.wallet.InvalidDepositException;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletTransactionPersistenceAdapter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class WalletTransactionDomainService implements WalletTransactionPort {
 
@@ -30,26 +31,27 @@ public class WalletTransactionDomainService implements WalletTransactionPort {
         BigDecimal balanceAfter = balanceBefore.add(data.amount());
 
         WalletTransaction walletTransaction = WalletTransaction.builder()
-                .createdAt(LocalDateTime.now())
                 .transactionType(data.transactionType())
                 .wallet(data.wallet())
-                .status(TransactionStatus.PROCESSING)
+                .status(TransactionStatus.COMPLETED)
                 .description(data.description())
                 .balanceAfter(balanceAfter)
                 .balanceBefore(balanceBefore)
                 .amount(data.amount())
                 .build();
 
-        UUID transactionId = persistenceAdapter.save(walletTransaction, data.wallet());
+        WalletTransaction transaction = persistenceAdapter.save(walletTransaction, data.wallet());
+
+        log.info("Transação criada: {}", transaction);
 
         if(data.wallet().getWalletStatus().equals(WalletStatus.BLOCKED) || data.wallet().getWalletStatus().equals(WalletStatus.CLOSED)) {
-            throw new InvalidDepositException(transactionId, "Wallet is blocked from receiving deposits");
+            throw new InvalidDepositException(transaction.getId(), "Wallet is blocked from receiving deposits");
         }
 
         if(data.amount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidDepositException(transactionId, "Invalid amount for a deposit");
+            throw new InvalidDepositException(transaction.getId(), "Invalid amount for a deposit");
         }
 
-        return walletTransaction;
+        return transaction;
     }
 }
