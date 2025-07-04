@@ -24,6 +24,10 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: false
+  kafka:
+    producer:
+      bootstrap-servers: ${KAFKA_HOST:localhost}:9092
+      retries: 3
   jpa:
     show-sql: false
     hibernate:

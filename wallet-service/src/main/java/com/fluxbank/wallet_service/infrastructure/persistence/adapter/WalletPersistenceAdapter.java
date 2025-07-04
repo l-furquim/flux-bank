@@ -25,14 +25,16 @@ public class WalletPersistenceAdapter {
         this.mapper = mapper;
     }
 
-    public void saveWallet(Wallet wallet){
+    public Wallet saveWallet(Wallet wallet){
         WalletEntity walletEntity = mapper.toEntity(wallet);
 
         log.debug("Saving wallet in db {}", wallet);
 
-        repository.save(walletEntity);
+        Wallet walletWithId = mapper.toDomain(repository.save(walletEntity));
 
         repository.flush();
+
+        return walletWithId;
     }
 
     @Transactional

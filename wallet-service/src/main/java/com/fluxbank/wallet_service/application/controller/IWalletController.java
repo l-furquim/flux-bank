@@ -1,9 +1,6 @@
 package com.fluxbank.wallet_service.application.controller;
 
-import com.fluxbank.wallet_service.application.dto.CreateWalletRequest;
-import com.fluxbank.wallet_service.application.dto.CreateWalletResponse;
-import com.fluxbank.wallet_service.application.dto.DepositInWalletRequest;
-import com.fluxbank.wallet_service.application.dto.DepositInWalletResponse;
+import com.fluxbank.wallet_service.application.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -63,6 +60,32 @@ public interface IWalletController {
     })
     public ResponseEntity<DepositInWalletResponse> deposit(
             @RequestBody DepositInWalletRequest request
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Balança retornada com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Busca por um deposito que não pertence ao usuário solicitado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Carteira não encontrada",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<GetWalletBalanceResponse> balance(
+            @RequestBody GetWalletBalanceRequest request
     );
 
 }

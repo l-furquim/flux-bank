@@ -43,5 +43,13 @@ public class WalletControllerImpl implements IWalletController {
         ));
     }
 
+    @GetMapping("/balance")
+    public ResponseEntity<GetWalletBalanceResponse> balance(
+            @Valid @RequestBody GetWalletBalanceRequest request
+            // @RequestHeader("X-User-Id") String userId
+    ) {
+        GetWalletBalanceResponse responseBody = port.balance(request, UUID.fromString("89d00d26-5eb1-464c-a931-965c0e09077"));
 
+        return ResponseEntity.ok().body(responseBody);
+    }
 }
