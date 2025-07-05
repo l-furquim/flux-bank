@@ -1,4 +1,4 @@
-package com.fluxbank.gateway_service.domain.models;
+package com.fluxbank.user_service.application.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,6 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -40,3 +39,4 @@ public class UserTokenData implements Serializable {
     }
 
 }
+
