@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class UserTokenData implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private String userId;
+    private UUID userId;
     private String email;
     private String deviceId;
     private Instant issuedAt;

@@ -10,6 +10,7 @@ import com.fluxbank.user_service.domain.model.UserDevice;
 import com.fluxbank.user_service.domain.repository.UserDeviceRepository;
 import com.fluxbank.user_service.domain.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,10 +20,12 @@ import java.time.Period;
 @Service
 public class RegisterUserService implements RegisterUserUsecase {
 
+    private final PasswordEncoder encoder;
     private final UserRepository userRepository;
     private final UserDeviceRepository userDeviceRepository;
 
-    public RegisterUserService(UserRepository userRepository, UserDeviceRepository userDeviceRepository) {
+    public RegisterUserService(PasswordEncoder encoder, UserRepository userRepository, UserDeviceRepository userDeviceRepository) {
+        this.encoder = encoder;
         this.userRepository = userRepository;
         this.userDeviceRepository = userDeviceRepository;
     }
@@ -45,9 +48,12 @@ public class RegisterUserService implements RegisterUserUsecase {
             throw new InvalidUserBirthdate();
         }
 
+        String passwordHashed = encoder.encode(request.password());
+
         User user = User
                 .builder()
                 .cpf(request.cpf())
+                .password(passwordHashed)
                 .email(request.email())
                 .fullName(request.fullName())
                 .birthDate(request.birthDate())
