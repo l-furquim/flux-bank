@@ -17,8 +17,6 @@ public class UserDevice {
 
     private UUID userId;
 
-    private String deviceId;
-
     private String userAgent;
 
 }

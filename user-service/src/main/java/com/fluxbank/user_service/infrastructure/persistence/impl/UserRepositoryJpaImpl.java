@@ -29,10 +29,10 @@ public class UserRepositoryJpaImpl implements UserRepository {
     }
 
     @Override
-    public void createUser(User user) {
+    public User createUser(User user) {
         UserEntity userToBePersisted = mapper.toEntity(user);
 
-        repository.save(userToBePersisted);
+        return mapper.toDomain(repository.save(userToBePersisted));
     }
 
     @Override

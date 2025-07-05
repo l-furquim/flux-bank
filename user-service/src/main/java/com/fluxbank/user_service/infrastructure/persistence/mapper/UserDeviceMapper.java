@@ -11,7 +11,6 @@ public class UserDeviceMapper {
         return UserDevice.builder()
                 .id(userDevice.getId())
                 .userAgent(userDevice.getUserAgent())
-                .deviceId(userDevice.getDeviceId())
                 .userId(userDevice.getUserId())
                 .build();
     }
@@ -19,7 +18,6 @@ public class UserDeviceMapper {
     public UserDeviceEntity toEntity(UserDevice userDevice) {
         return UserDeviceEntity.builder()
                 .userAgent(userDevice.getUserAgent())
-                .deviceId(userDevice.getDeviceId())
                 .userId(userDevice.getUserId())
                 .build();
     }

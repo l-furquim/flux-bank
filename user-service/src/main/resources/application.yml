@@ -33,5 +33,6 @@ metrics:
   export:
     prometheus:
       enabled: true
-jwt:
-  secret: ${JWT_SECRET:babalu}
+security:
+  jwt:
+    secret: ${JWT_SECRET:babalu}

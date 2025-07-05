@@ -1,4 +1,4 @@
-package com.fluxbank.user_service.application.dto;
+package com.fluxbank.user_service.interfaces.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

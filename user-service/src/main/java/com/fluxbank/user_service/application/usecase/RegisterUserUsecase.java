@@ -1,14 +1,8 @@
 package com.fluxbank.user_service.application.usecase;
 
-import com.fluxbank.user_service.domain.repository.UserRepository;
-import org.springframework.stereotype.Service;
+import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
+import com.fluxbank.user_service.interfaces.dto.UserDeviceDto;
 
-@Service
-public class RegisterUserUsecase {
-
-    private final UserRepository repository;
-
-
-
-
+public interface RegisterUserUsecase {
+    void register(CreateUserRequest request, UserDeviceDto deviceInfo);
 }

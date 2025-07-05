@@ -1,4 +1,4 @@
-package com.fluxbank.user_service.application.dto;
+package com.fluxbank.user_service.interfaces.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;

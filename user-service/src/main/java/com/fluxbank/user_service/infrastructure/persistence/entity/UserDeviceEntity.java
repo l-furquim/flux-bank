@@ -26,9 +26,6 @@ public class UserDeviceEntity {
     private UUID userId;
 
     @NotBlank
-    private String deviceId;
-
-    @NotBlank
     private String userAgent;
 
 

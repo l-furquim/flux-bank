@@ -8,7 +8,7 @@ import java.util.UUID;
 public interface UserRepository {
 
     Optional<User> findByCpf(String cpf);
-    void createUser(User user);
+    User createUser(User user);
     Optional<User> getUserData(UUID userId);
 
 }
