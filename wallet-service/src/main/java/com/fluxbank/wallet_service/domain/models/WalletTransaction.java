@@ -19,6 +19,8 @@ public class WalletTransaction {
 
     private Wallet wallet;
 
+    private UUID transactionId;
+
     private TransactionType transactionType;
 
     private BigDecimal amount;

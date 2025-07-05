@@ -27,6 +27,7 @@ public class WalletTransactionMapper {
                 .metadata(walletTransactionEntity.getMetadata())
                 .status(walletTransactionEntity.getStatus())
                 .amount(walletTransactionEntity.getAmount())
+                .transactionId(walletTransactionEntity.getTransactionId())
                 .build();
     }
 
@@ -40,6 +41,7 @@ public class WalletTransactionMapper {
                 .metadata(walletTransaction.getMetadata())
                 .status(walletTransaction.getStatus())
                 .amount(walletTransaction.getAmount())
+                .transactionId(walletTransaction.getTransactionId())
                 .build();
     }
 

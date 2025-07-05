@@ -13,6 +13,7 @@ import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
 import com.fluxbank.wallet_service.infrastructure.service.TokenService;
+import com.fluxbank.wallet_service.infrastructure.service.WalletEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -20,6 +21,9 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,10 +34,12 @@ public class WalletDomainService implements WalletPort {
 
     private final WalletPersistenceAdapter adapter;
     private final WalletTransactionPort walletTransactionService;
+    private final WalletEventService eventService;
 
-    public WalletDomainService(WalletPersistenceAdapter adapter, WalletTransactionPort walletTransactionService, TokenService tokenService) {
+    public WalletDomainService(WalletPersistenceAdapter adapter, WalletTransactionPort walletTransactionService, WalletEventService eventService) {
         this.adapter = adapter;
         this.walletTransactionService = walletTransactionService;
+        this.eventService = eventService;
     }
 
     // @CachePut(value = "wallets", key = "#result.id")
@@ -73,8 +79,11 @@ public class WalletDomainService implements WalletPort {
             throw new WalletNotFoundException();
         }
 
-        WalletTransaction transaction = walletTransactionService.create(new CreateWalletTransactionDto(
+        UUID transactionId = UUID.fromString(data.transactionId());
+
+        WalletTransaction walletTransaction = walletTransactionService.create(new CreateWalletTransactionDto(
                 wallet,
+                transactionId,
                 data.type(),
                 data.amount(),
                 data.description(),
@@ -86,11 +95,31 @@ public class WalletDomainService implements WalletPort {
 
         adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
 
+        long processedMs = Duration.between(
+                walletTransaction.getCreatedAt(),
+                LocalDateTime.now()
+        ).toMillis();
+
+        eventService.sendTransactionConfirmation(
+                new WalletUpdatedEventDto(
+                        walletTransaction.getTransactionId(),
+                        wallet.getUserId().toString(),
+                        walletTransaction.getTransactionType().toString(),
+                        walletTransaction.getStatus().toString(),
+                        data.amount(),
+                        wallet.getCurrency().toString(),
+                        processedMs,
+                        Instant.now(),
+                        "walletDomainService"
+                )
+        );
+
         return new TransactionResult(
-                transaction.getId(),
+                transactionId,
+                data.type(),
                 wallet.getCurrency(),
                 data.amount(),
-                transaction.getCreatedAt()
+                walletTransaction.getCreatedAt()
         );
     }
 

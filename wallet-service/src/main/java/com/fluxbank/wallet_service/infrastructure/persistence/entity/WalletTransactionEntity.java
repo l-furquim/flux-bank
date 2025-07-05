@@ -3,6 +3,7 @@ package com.fluxbank.wallet_service.infrastructure.persistence.entity;
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
 import com.fluxbank.wallet_service.domain.enums.TransactionType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,6 +30,9 @@ public class WalletTransactionEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "wallet_id", nullable = false)
     private WalletEntity wallet;
+
+    @NotNull
+    private UUID transactionId;
 
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;

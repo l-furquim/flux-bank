@@ -2,12 +2,17 @@ package com.fluxbank.wallet_service.application.dto;
 
 import com.fluxbank.wallet_service.domain.enums.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 public record DepositInWalletRequest(
+
+        @Schema(description = "Id da transação responsável pelo depósito")
+        @NotBlank String transactionId,
+
         @Schema(description = "Quantidade de dinheiro a ser depositado" ,example = "19.10")
         @NotNull BigDecimal amount,
 
