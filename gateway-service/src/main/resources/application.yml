@@ -5,29 +5,25 @@ spring:
   name: gateway-service
   data:
     redis:
-      host: redis
+      host: ${REDIS_HOST:localhost}
       port: 6379
-  jpa:
-    show-sql: false
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-management:
-  endpoint:
-    health:
-      show-details: always
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health, info, metrics, prometheus
+
+  endpoint:
+    health:
+      show-details: always
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
   metrics:
     enable:
       jvm: true
-    export:
-      prometheus:
-        enabled: true
     distribution:
       sla:
         http:
@@ -35,3 +31,7 @@ management:
             requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
     tags:
       application: gateway-service
+gateway:
+  routes:
+    wallet-service: ${WALLET_SERVICE_URI:http://localhost:8081}
+    user-service: ${USER_SERVICE_URI:http://localhost:8082}

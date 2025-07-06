@@ -9,21 +9,17 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.Duration;
+
 import java.time.Instant;
 import java.util.*;
 
@@ -31,13 +27,11 @@ import java.util.*;
 @Slf4j
 public class UserContextGatewayFilter implements GatewayFilter, Ordered {
 
-    private final JwtDecoder jwtDecoder;
     private final TokenService tokenService;
     private final Counter approvedRequests;
     private final Counter notApprovedRequests;
 
-    public UserContextGatewayFilter(JwtDecoder jwtDecoder, TokenService tokenService, MeterRegistry registry) {
-        this.jwtDecoder = jwtDecoder;
+    public UserContextGatewayFilter(TokenService tokenService, MeterRegistry registry) {
         this.tokenService = tokenService;
         this.approvedRequests = Counter.builder("approved_requests")
                 .description("Numero de requisições aprovadas pelo gateway")
@@ -51,13 +45,17 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return handleUnauthorized(exchange, "Token JWT necessário");
+        HttpCookie sessionCookie = exchange.getRequest()
+                .getCookies()
+                .getFirst("SESSION");
+
+        if (sessionCookie == null) {
+            return handleUnauthorized(exchange, "Usuário não autenticado.");
         }
 
-        String token = authHeader.substring(7);
+        String token = sessionCookie.getValue();
+
         return processTokenAndContinue(exchange, chain, token, request);
     }
 
@@ -71,7 +69,7 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
 
             if (tokenData.isExpired()) {
                 tokenService.removeTokenFromCache(token);
-                return handleUnauthorized(exchange, "Token expirado");
+                return handleUnauthorized(exchange, "Sessão expirada");
             }
 
             log.debug("Using cached token data for user: {}", tokenData.getUserId());
@@ -79,27 +77,29 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
             return continueWithTokenData(exchange, chain, tokenData, token, request, false);
         }
 
-        try {
-            Jwt jwt = jwtDecoder.decode(token);
-            UserTokenData tokenData = extractTokenDataFromJwt(jwt);
+        return handleUnauthorized(exchange, "Sessão inválida");
 
-            Duration expiration = Duration.between(Instant.now(), tokenData.getExpiresAt());
-
-            if (expiration.isNegative() || expiration.isZero()) {
-
-                return handleUnauthorized(exchange, "Token expirado");
-            }
-
-            tokenService.cacheTokenData(token, tokenData, expiration);
-
-            log.debug("Token validated and cached for user: {}", tokenData.getUserId());
-            approvedRequests.increment();
-            return continueWithTokenData(exchange, chain, tokenData, token, request, true);
-
-        } catch (JwtException e) {
-            log.warn("Token JWT inválido: {}", e.getMessage());
-            return handleUnauthorized(exchange, "Token JWT inválido");
-        }
+//        try {
+//            Jwt jwt = jwtDecoder.decode(token);
+//            UserTokenData tokenData = extractTokenDataFromJwt(jwt);
+//
+//            Duration expiration = Duration.between(Instant.now(), tokenData.getExpiresAt());
+//
+//            if (expiration.isNegative() || expiration.isZero()) {
+//
+//                return handleUnauthorized(exchange, "Token expirado");
+//            }
+//
+//            tokenService.cacheTokenData(token, tokenData, expiration);
+//
+//            log.debug("Token validated and cached for user: {}", tokenData.getUserId());
+//            approvedRequests.increment();
+//            return continueWithTokenData(exchange, chain, tokenData, token, request, true);
+//
+//        } catch (JwtException e) {
+//            log.warn("Token JWT inválido: {}", e.getMessage());
+//            return handleUnauthorized(exchange, "Token JWT inválido");
+//        }
     }
 
     private Mono<Void> continueWithTokenData(ServerWebExchange exchange, GatewayFilterChain chain,
@@ -112,7 +112,6 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
                 .header("X-Device-Id", tokenData.getDeviceId() != null ? tokenData.getDeviceId() : "unknown")
                 .header("X-Request-Id", generateRequestId())
                 .header("X-Gateway-Timestamp", String.valueOf(System.currentTimeMillis()))
-                .header("X-Token-Hash", generateTokenHash(token))
                 .header("X-Token-Cached", newlyValidated ? "false" : "true")
                 .build();
 
@@ -120,30 +119,6 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
                 request.getMethod().name(), newlyValidated);
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build());
-    }
-
-    private UserTokenData extractTokenDataFromJwt(Jwt jwt) {
-        return UserTokenData.builder()
-                .userId(jwt.getClaimAsString("sub"))
-                .email(jwt.getClaimAsString("email"))
-                .deviceId(jwt.getClaimAsString("device_id"))
-                .issuedAt(jwt.getIssuedAt())
-                .expiresAt(jwt.getExpiresAt())
-                .additionalClaims(extractAdditionalClaims(jwt))
-                .build();
-    }
-
-    private Map<String, Object> extractAdditionalClaims(Jwt jwt) {
-        Map<String, Object> additionalClaims = new HashMap<>();
-        Set<String> standardClaims = Set.of("sub", "email", "device_id", "iat", "exp", "iss");
-
-        jwt.getClaims().forEach((key, value) -> {
-            if (!standardClaims.contains(key)) {
-                additionalClaims.put(key, value);
-            }
-        });
-
-        return additionalClaims;
     }
 
     private void logRequest(String userId, String path, String method, boolean newlyValidated) {
@@ -155,15 +130,6 @@ public class UserContextGatewayFilter implements GatewayFilter, Ordered {
         return UUID.randomUUID().toString();
     }
 
-    private String generateTokenHash(String token) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(hash).substring(0, 16);
-        } catch (NoSuchAlgorithmException e) {
-            return token.substring(0, Math.min(16, token.length()));
-        }
-    }
 
     private Mono<Void> handleUnauthorized(ServerWebExchange exchange, String message) {
         notApprovedRequests.increment();

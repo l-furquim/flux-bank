@@ -4,19 +4,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxbank.gateway_service.domain.models.UserTokenData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
+@Service
 @Slf4j
 public class TokenService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    private static final String TOKEN_CACHE_PREFIX = "token:";
+    private static final String TOKEN_CACHE_PREFIX = "user_token:";
     private static final String USER_SESSIONS_PREFIX = "user_sessions:";
 
     public TokenService(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
@@ -24,29 +23,9 @@ public class TokenService {
         this.objectMapper = objectMapper;
     }
 
-    public void cacheTokenData(String token, UserTokenData tokenData, Duration expiration) {
+    public Optional<UserTokenData> getTokenData(String userId) {
         try {
-            String cacheKey = TOKEN_CACHE_PREFIX + token;
-            String userSessionsKey = USER_SESSIONS_PREFIX + tokenData.getUserId();
-
-            removeTokenFromCache(token);
-
-            redisTemplate.opsForValue().set(cacheKey, tokenData, expiration);
-
-            redisTemplate.opsForSet().add(userSessionsKey, token);
-            redisTemplate.expire(userSessionsKey, expiration);
-
-            log.debug("Token cached successfully for user: {} with expiration: {}",
-                    tokenData.getUserId(), expiration);
-
-        } catch (Exception e) {
-            log.error("Error caching token data", e);
-        }
-    }
-
-    public Optional<UserTokenData> getTokenData(String token) {
-        try {
-            String cacheKey = TOKEN_CACHE_PREFIX + token;
+            String cacheKey = TOKEN_CACHE_PREFIX.concat(userId);
             Object cached = redisTemplate.opsForValue().get(cacheKey);
 
             if (cached != null) {
@@ -65,55 +44,19 @@ public class TokenService {
         }
     }
 
-    public void removeTokenFromCache(String token) {
+    public void removeTokenFromCache(String userId) {
         try {
-            String cacheKey = TOKEN_CACHE_PREFIX + token;
+            String cacheKey = TOKEN_CACHE_PREFIX.concat(userId);
 
-            Optional<UserTokenData> tokenData = getTokenData(token);
+            Optional<UserTokenData> tokenData = getTokenData(userId);
 
             redisTemplate.delete(cacheKey);
 
-            if (tokenData.isPresent()) {
-                String userSessionsKey = USER_SESSIONS_PREFIX + tokenData.get().getUserId();
-                redisTemplate.opsForSet().remove(userSessionsKey, token);
-            }
-
-            log.debug("Token removed from cache: {}", token.substring(0, 10) + "...");
+            log.debug("Token removed from cache: {}", userId.substring(0, 10) + "...");
 
         } catch (Exception e) {
             log.error("Error removing token from cache", e);
         }
-    }
-
-    public void invalidateUserSessions(String userId) {
-        try {
-            String userSessionsKey = USER_SESSIONS_PREFIX + userId;
-            Set<Object> tokens = redisTemplate.opsForSet().members(userSessionsKey);
-
-            if (tokens != null) {
-                for (Object token : tokens) {
-                    String tokenStr = token.toString();
-                    String cacheKey = TOKEN_CACHE_PREFIX + tokenStr;
-                    redisTemplate.delete(cacheKey);
-                }
-
-                redisTemplate.delete(userSessionsKey);
-                log.info("Invalidated {} sessions for user: {}", tokens.size(), userId);
-            }
-
-        } catch (Exception e) {
-            log.error("Error invalidating user sessions", e);
-        }
-    }
-
-    public boolean isTokenCached(String token) {
-        String cacheKey = TOKEN_CACHE_PREFIX + token;
-        return redisTemplate.hasKey(cacheKey);
-    }
-
-    public long getTokenTTL(String token) {
-        String cacheKey = TOKEN_CACHE_PREFIX + token;
-        return redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
     }
 
 }

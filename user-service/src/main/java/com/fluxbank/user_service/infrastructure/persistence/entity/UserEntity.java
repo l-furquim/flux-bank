@@ -3,6 +3,7 @@ package com.fluxbank.user_service.infrastructure.persistence.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,7 +41,7 @@ public class UserEntity {
     @NotBlank
     private String password;
 
-    @NotBlank
+    @NotNull
     private LocalDate birthDate;
 
     @NotBlank

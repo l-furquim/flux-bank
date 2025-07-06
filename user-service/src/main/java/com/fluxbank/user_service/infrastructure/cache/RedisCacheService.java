@@ -14,6 +14,7 @@ import java.time.Duration;
 public class RedisCacheService implements CacheService {
 
     private static final String USER_SESSIONS_PREFIX = "user_sessions:";
+    private static final String TOKEN_PREFIX = "user_token:";
     private static final Duration TOKEN_EXPIRATION = Duration.ofHours(1);
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -26,20 +27,19 @@ public class RedisCacheService implements CacheService {
     @Override
     public void cacheToken(String token, UserTokenData tokenData) {
         try {
-            String cacheKey = tokenData.getUserId() + token;
-
-            boolean isTokenAlreadyCached = redisTemplate.opsForValue().get(cacheKey) != null;
-
-            if(isTokenAlreadyCached) {
-                this.removeTokenFromCache(token, tokenData);
-            }
-
-            String userSessionsKey = USER_SESSIONS_PREFIX + tokenData.getUserId();
+            String cacheKey = TOKEN_PREFIX + token;
 
             redisTemplate.opsForValue().set(cacheKey, tokenData, TOKEN_EXPIRATION);
 
-            redisTemplate.opsForSet().add(userSessionsKey, token);
-            redisTemplate.expire(userSessionsKey, TOKEN_EXPIRATION);
+            String userSessionsKey = USER_SESSIONS_PREFIX + tokenData.getUserId();
+
+            boolean isSessionAlreadyActive = redisTemplate.opsForValue().get(userSessionsKey) != null;
+
+            if(isSessionAlreadyActive){
+                this.removeTokenFromCache(token, tokenData);
+            }
+
+            redisTemplate.opsForSet().add(userSessionsKey, token, TOKEN_EXPIRATION);
 
             log.debug("Token cached successfully for user: {} with expiration: {}",
                     tokenData.getUserId(), TOKEN_EXPIRATION);
@@ -52,7 +52,7 @@ public class RedisCacheService implements CacheService {
 
     public void removeTokenFromCache(String token, UserTokenData tokenData) {
         try {
-            String cacheKey = tokenData.getUserId() + token;
+            String cacheKey = TOKEN_PREFIX + token;
 
             redisTemplate.delete(cacheKey);
 

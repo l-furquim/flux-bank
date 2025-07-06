@@ -2,14 +2,21 @@ package com.fluxbank.user_service.interfaces.controller.impl;
 
 import com.fluxbank.user_service.application.usecase.AuthUserUsecase;
 import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
+import com.fluxbank.user_service.interfaces.dto.AuthUserResponse;
 import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
 import com.fluxbank.user_service.interfaces.dto.UserDeviceDto;
 import com.fluxbank.user_service.application.usecase.RegisterUserUsecase;
 import com.fluxbank.user_service.interfaces.controller.UserController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -35,11 +42,22 @@ public class UserControllerImpl implements UserController {
 
     @PostMapping("/auth")
     public ResponseEntity<String> authUser(
-            @Valid @RequestBody AuthUserRequest request
+            @Valid @RequestBody AuthUserRequest request,
+            @RequestHeader("User-Agent") String agent
     ) {
-        authUsecase.auth(request);
+        AuthUserResponse response = authUsecase.auth(request, agent);
 
-        return ResponseEntity.ok().body("Login realizado com sucesso");
+        ResponseCookie sessionCookie = ResponseCookie.from("SESSION", response.token())
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(Duration.between(Instant.now(), response.tokenData().getExpiresAt()))
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, sessionCookie.toString())
+                .body("Login realizado com sucesso");
     }
 
 

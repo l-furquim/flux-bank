@@ -3,17 +3,21 @@ package com.fluxbank.user_service.application.service;
 import com.fluxbank.user_service.application.usecase.AuthUserUsecase;
 import com.fluxbank.user_service.domain.exceptions.UnauthorizedAuthException;
 import com.fluxbank.user_service.domain.model.User;
+import com.fluxbank.user_service.domain.model.UserDevice;
 import com.fluxbank.user_service.domain.repository.UserDeviceRepository;
 import com.fluxbank.user_service.domain.repository.UserRepository;
 import com.fluxbank.user_service.domain.service.CacheService;
 import com.fluxbank.user_service.domain.service.TokenService;
 import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
+import com.fluxbank.user_service.interfaces.dto.AuthUserResponse;
 import com.fluxbank.user_service.interfaces.dto.UserTokenData;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AuthUserService implements AuthUserUsecase {
@@ -33,7 +37,7 @@ public class AuthUserService implements AuthUserUsecase {
     }
 
     @Override
-    public void auth(AuthUserRequest request) {
+    public AuthUserResponse auth(AuthUserRequest request, String userAgent) {
         Optional<User> userFounded = repository.findByCpf(request.cpf());
 
         if(userFounded.isEmpty()) {
@@ -50,17 +54,23 @@ public class AuthUserService implements AuthUserUsecase {
 
         String token = tokenService.generateToken(user);
 
-        // implementar registro do device id certo...
+        // melhorar isso para caso o usuario esteja fazendo login em um device que nao foi o que criou a conta ele ja crie esse device novo
+        UserDevice userDevice = userDeviceRepository.findByUserId(user.getId())
+                .stream()
+                .filter(d -> d.getUserAgent().equals(userAgent))
+                .toList().get(0);
 
         UserTokenData tokenData = UserTokenData.builder()
                         .userId(user.getId())
                         .email(user.getEmail())
-                        .deviceId(" aaaaa")
+                        .deviceId(String.valueOf(userDevice.getId()))
                         .expiresAt(tokenService.getExpirationDate(token))
                         .issuedAt(Instant.now())
                         .build();
 
 
         cacheService.cacheToken(token, tokenData);
+
+        return new AuthUserResponse(token, tokenData);
     }
 }

@@ -33,8 +33,8 @@ public interface IWalletController {
             )
     })
     public ResponseEntity<CreateWalletResponse> create(
-            @RequestBody CreateWalletRequest request
-            // @RequestHeader("X-User-Id") String userId
+            @RequestBody CreateWalletRequest request,
+            @RequestHeader("X-User-Id") String userId
     );
 
     @Operation(
@@ -85,7 +85,8 @@ public interface IWalletController {
             )
     })
     public ResponseEntity<GetWalletBalanceResponse> balance(
-            @RequestBody GetWalletBalanceRequest request
+            @RequestBody GetWalletBalanceRequest request,
+            @RequestHeader("X-User-Id") String userId
     );
 
 }

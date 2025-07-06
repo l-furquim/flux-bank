@@ -28,11 +28,27 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus, health, info, metrics
-metrics:
-  export:
-    prometheus:
-      enabled: true
+        include: health, info, metrics, prometheus
+
+  endpoint:
+    health:
+      show-details: always
+
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+  metrics:
+    enable:
+      jvm: true
+    distribution:
+      sla:
+        http:
+          server:
+            requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
+    tags:
+      application: gateway-service
 security:
   jwt:
     secret: ${JWT_SECRET:babalu}

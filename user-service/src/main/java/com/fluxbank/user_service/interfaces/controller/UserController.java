@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 public interface UserController {
 
@@ -52,7 +53,8 @@ public interface UserController {
             )
     })
     public ResponseEntity<String> authUser(
-            @Valid @RequestBody AuthUserRequest request
+            @Valid @RequestBody AuthUserRequest request,
+            @RequestHeader("User-Agent") String agent
     );
 
 }
