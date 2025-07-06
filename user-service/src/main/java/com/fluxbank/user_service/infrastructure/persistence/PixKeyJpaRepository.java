@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface PixKeyJpaRepository extends JpaRepository<PixKeyEntity, UUID> {
 
-    @Query("SELECT p FROM PixKeyEntity WHERE p.userId = :userId")
+    @Query("SELECT p FROM PixKeyEntity p WHERE p.ownerId = :userId")
     List<PixKeyEntity> findByUserId(@Param("userId") UUID userId);
 
     @Query("DELETE FROM PixKeyEntity p WHERE p.id = :id")

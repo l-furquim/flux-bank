@@ -12,7 +12,7 @@ public record CreateUserRequest(
         @NotBlank
         String fullName,
 
-        @Schema(description = "Cnpj do usuário")
+        @Schema(description = "Cnpj do usuário somente numeros")
         @NotBlank
         String cpf,
 
@@ -26,7 +26,6 @@ public record CreateUserRequest(
         String password,
 
         @Schema(description = "Data de aniversario do usuario")
-        @NotBlank
         LocalDate birthDate,
 
         @Schema(description = "Endereço do usuario")

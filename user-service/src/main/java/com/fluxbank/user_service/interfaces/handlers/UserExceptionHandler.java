@@ -1,7 +1,7 @@
 package com.fluxbank.user_service.interfaces.handlers;
 
-import com.fluxbank.user_service.domain.exceptions.InvalidUserBirthdate;
-import com.fluxbank.user_service.domain.exceptions.UnnauthorizedAccountCreation;
+
+import com.fluxbank.user_service.domain.exceptions.*;
 import com.fluxbank.user_service.interfaces.handlers.generic.ExceptionHandlerResponse;
 import com.fluxbank.user_service.interfaces.handlers.generic.GenericExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,5 +31,40 @@ public class UserExceptionHandler extends GenericExceptionHandler {
 
         return this.buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
     }
+
+    @ExceptionHandler(UnauthorizedAuthException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleUnauthorizedAuth(
+            UnauthorizedAuthException ex, HttpServletRequest request
+    ) {
+
+        return this.buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(CacheDataException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleCacheData(
+            CacheDataException ex, HttpServletRequest request
+    ) {
+
+        return this.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(TokenGenerationException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleJwtCreation(
+            TokenGenerationException ex, HttpServletRequest request
+    ) {
+
+        return this.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleJwtVerification(
+            InvalidTokenException ex, HttpServletRequest request
+    ) {
+
+        return this.buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+    }
+
+
+
 
 }

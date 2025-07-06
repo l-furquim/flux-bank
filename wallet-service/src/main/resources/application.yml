@@ -15,7 +15,7 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: 6379
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:fluxbank?createDatabaseIfNotExist=true}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:fluxbank}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver

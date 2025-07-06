@@ -1,5 +1,6 @@
 package com.fluxbank.user_service.interfaces.controller;
 
+import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
 import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,6 +32,27 @@ public interface UserController {
     ResponseEntity<Void> registerUser(
             @Valid @RequestBody CreateUserRequest request,
             HttpServletRequest servlet
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Login realizado com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Credenciais incorretas.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<String> authUser(
+            @Valid @RequestBody AuthUserRequest request
     );
 
 }

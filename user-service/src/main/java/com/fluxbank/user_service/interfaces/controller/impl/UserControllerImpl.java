@@ -1,5 +1,7 @@
 package com.fluxbank.user_service.interfaces.controller.impl;
 
+import com.fluxbank.user_service.application.usecase.AuthUserUsecase;
+import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
 import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
 import com.fluxbank.user_service.interfaces.dto.UserDeviceDto;
 import com.fluxbank.user_service.application.usecase.RegisterUserUsecase;
@@ -14,9 +16,11 @@ import org.springframework.web.bind.annotation.*;
 public class UserControllerImpl implements UserController {
 
     private final RegisterUserUsecase registerUsecase;
+    private final AuthUserUsecase authUsecase;
 
-    public UserControllerImpl(RegisterUserUsecase registerUsecase) {
+    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase) {
         this.registerUsecase = registerUsecase;
+        this.authUsecase = authUsecase;
     }
 
     @PostMapping("/register")
@@ -28,5 +32,15 @@ public class UserControllerImpl implements UserController {
 
         return ResponseEntity.status(204).build();
     }
+
+    @PostMapping("/auth")
+    public ResponseEntity<String> authUser(
+            @Valid @RequestBody AuthUserRequest request
+    ) {
+        authUsecase.auth(request);
+
+        return ResponseEntity.ok().body("Login realizado com sucesso");
+    }
+
 
 }
