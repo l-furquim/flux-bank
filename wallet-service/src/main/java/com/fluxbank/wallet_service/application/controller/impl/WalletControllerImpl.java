@@ -3,7 +3,6 @@ package com.fluxbank.wallet_service.application.controller.impl;
 import com.fluxbank.wallet_service.application.controller.IWalletController;
 import com.fluxbank.wallet_service.application.dto.*;
 import com.fluxbank.wallet_service.application.port.WalletPort;
-import com.fluxbank.wallet_service.domain.models.Wallet;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -52,4 +51,13 @@ public class WalletControllerImpl implements IWalletController {
 
         return ResponseEntity.ok().body(responseBody);
     }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<WithDrawResponse> withdraw(
+            @Valid @RequestBody WithDrawRequest request,
+            @RequestHeader("X-User_Id") String userId
+    ) {
+
+    }
+
 }

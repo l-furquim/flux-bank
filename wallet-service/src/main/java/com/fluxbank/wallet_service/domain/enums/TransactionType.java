@@ -4,6 +4,7 @@ public enum TransactionType {
     CREDIT,
     DEBIT,
     BLOCK,
+    PIX,
     UNBLOCK,
     REFUND,
     ADJUSTMENT

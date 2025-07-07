@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -87,6 +88,11 @@ public interface IWalletController {
     public ResponseEntity<GetWalletBalanceResponse> balance(
             @RequestBody GetWalletBalanceRequest request,
             @RequestHeader("X-User-Id") String userId
+    );
+
+    public ResponseEntity<WithDrawResponse> withdraw(
+            @Valid @RequestBody WithDrawRequest request,
+            @RequestHeader("X-User_Id") String userId
     );
 
 }

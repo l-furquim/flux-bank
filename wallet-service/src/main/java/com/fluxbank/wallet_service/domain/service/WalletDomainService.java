@@ -7,6 +7,7 @@ import com.fluxbank.wallet_service.domain.enums.Currency;
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
 import com.fluxbank.wallet_service.domain.enums.WalletStatus;
 import com.fluxbank.wallet_service.domain.exception.wallet.DuplicatedWalletCurrencyException;
+import com.fluxbank.wallet_service.domain.exception.wallet.UnauthorizedWithDrawRequest;
 import com.fluxbank.wallet_service.domain.exception.wallet.UnnauthorizedBalanceRequestException;
 import com.fluxbank.wallet_service.domain.exception.wallet.WalletNotFoundException;
 import com.fluxbank.wallet_service.domain.models.Wallet;
@@ -130,11 +131,11 @@ public class WalletDomainService implements WalletPort {
 
         Wallet wallet = adapter.findWalletById(walletId);
 
-        if(wallet == null) {
+        if (wallet == null) {
             throw new WalletNotFoundException();
         }
 
-        if(!wallet.getUserId().equals(userId)) {
+        if (!wallet.getUserId().equals(userId)) {
             throw new UnnauthorizedBalanceRequestException();
         }
 
@@ -144,6 +145,39 @@ public class WalletDomainService implements WalletPort {
                 wallet.getBlockedAmount(),
                 wallet.getWalletStatus()
         );
+    }
+
+    @Override
+    public WithDrawResponse withDraw(WithDrawRequest request, String userId) {
+        UUID walletId = UUID.fromString(request.walletId());
+
+        Wallet wallet = this.adapter.findWalletById(walletId);
+
+        if(wallet == null) {
+            throw new WalletNotFoundException();
+        }
+
+        UUID userIdConverted = UUID.fromString(userId);
+
+        if(!wallet.getUserId().equals(userIdConverted)){
+            throw new UnauthorizedWithDrawRequest();
+        }
+
+        WalletTransaction walletTransaction = walletTransactionService.create(new CreateWalletTransactionDto(
+                wallet,
+                request.transactionId(),
+                data.type(),
+                data.amount(),
+                data.description(),
+                data.metadata(),
+                Optional.of(TransactionStatus.COMPLETED)
+        ));
+
+        wallet.deposit(data.amount());
+
+        adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
+
+
     }
 
 }
