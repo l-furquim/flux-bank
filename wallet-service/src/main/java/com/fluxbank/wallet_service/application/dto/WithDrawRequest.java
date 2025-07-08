@@ -1,5 +1,6 @@
 package com.fluxbank.wallet_service.application.dto;
 
+import com.fluxbank.wallet_service.domain.enums.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +20,15 @@ public record WithDrawRequest(
 
         @Schema(description = "Id da transação referente")
         @NotNull
-        UUID transactionId
+        UUID transactionId,
+
+        @Schema(description = "Tipo da transação de saque")
+        @NotNull
+        TransactionType type,
+
+        @Schema(description = "Metadata do provedor")
+        @NotNull
+        String metadata
+
 ) {
 }

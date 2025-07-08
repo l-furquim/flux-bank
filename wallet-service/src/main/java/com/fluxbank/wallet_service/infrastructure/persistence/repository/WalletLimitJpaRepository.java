@@ -1,12 +1,17 @@
 package com.fluxbank.wallet_service.infrastructure.persistence.repository;
 
+import com.fluxbank.wallet_service.domain.enums.LimitStatus;
+import com.fluxbank.wallet_service.domain.enums.LimitType;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletLimitEntity;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -14,5 +19,17 @@ public interface WalletLimitJpaRepository extends JpaRepository<WalletLimitEntit
 
     @Query("SELECT w FROM WalletLimitEntity w WHERE w.userId = :userId AND w.walletId = :walletId")
     List<WalletLimitEntity> findByUserAndWalletId(@Param("userId") UUID userId, @Param("walletId") UUID walletId);
+
+    @Modifying
+    @Query(
+            "UPDATE WalletLimitEntity " +
+            "w SET w.limitAmount = :amount, " +
+            "w.usedAmount = w.usedAmount + :amount, " +
+            "w.status = :status " +
+            "WHERE w.id = :id")
+    void updateWalletLimit(@Param("id") UUID id, @Param("amount") BigDecimal amount, @Param("status") LimitStatus status);
+
+    @Query("SELECT w from WalletLimitEntity w WHERE w.walletId = :walletId AND w.type = :type")
+    Optional<WalletLimitEntity> findWalletLimitByTypeAndWalletId(@Param("walletId") UUID walletId, @Param("type") LimitType type);
 
 }

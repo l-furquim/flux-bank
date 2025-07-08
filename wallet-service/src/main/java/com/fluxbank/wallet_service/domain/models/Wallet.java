@@ -44,4 +44,8 @@ public class Wallet {
         this.balance = this.balance.add(amount);
     }
 
+    public void withDraw(BigDecimal amount) {
+        this.balance = this.balance.subtract(amount);
+    }
+
 }

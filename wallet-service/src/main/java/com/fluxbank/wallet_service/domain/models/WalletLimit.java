@@ -3,16 +3,14 @@ package com.fluxbank.wallet_service.domain.models;
 
 import com.fluxbank.wallet_service.domain.enums.LimitStatus;
 import com.fluxbank.wallet_service.domain.enums.LimitType;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
-@AllArgsConstructor
 @Builder
+@Data
 public class WalletLimit {
 
     private Wallet wallet;
@@ -21,11 +19,13 @@ public class WalletLimit {
 
     private BigDecimal limitAmount;
 
+    @Builder.Default
     private BigDecimal usedAmount = BigDecimal.ZERO;
 
     private LocalDateTime resetDate;
 
-    private LimitStatus status;
+    @Builder.Default
+    private LimitStatus status = LimitStatus.ACTIVE;
 
     private LocalDateTime createdAt;
 

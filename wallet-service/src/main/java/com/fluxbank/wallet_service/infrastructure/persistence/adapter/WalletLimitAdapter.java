@@ -1,5 +1,7 @@
 package com.fluxbank.wallet_service.infrastructure.persistence.adapter;
 
+import com.fluxbank.wallet_service.domain.enums.LimitStatus;
+import com.fluxbank.wallet_service.domain.enums.LimitType;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletLimit;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntity;
@@ -10,7 +12,9 @@ import com.fluxbank.wallet_service.infrastructure.persistence.repository.WalletL
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -44,5 +48,13 @@ public class WalletLimitAdapter {
     }
 
     @Transactional
-    public void updateWalletLimit()
+    public void updateWalletLimit(UUID walletLimitId, BigDecimal amount, LimitStatus status){
+        repository.updateWalletLimit(walletLimitId, amount, status);
+    }
+
+    public Optional<WalletLimit> findWalletLimitByTypeAndWalletId(LimitType type, Wallet wallet) {
+        Optional<WalletLimitEntity> walletLimit = repository.findWalletLimitByTypeAndWalletId(wallet.getId(), type);
+
+        return walletLimit.map(walletLimitEntity -> mapper.toDomain(walletLimitEntity, wallet));
+    }
 }

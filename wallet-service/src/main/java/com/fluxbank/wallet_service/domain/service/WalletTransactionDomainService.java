@@ -40,6 +40,10 @@ public class WalletTransactionDomainService implements WalletTransactionPort {
                 .amount(data.amount())
                 .build();
 
+        if(data.status().isPresent()){
+            walletTransaction.setStatus(data.status().get());
+        }
+
         WalletTransaction transaction = persistenceAdapter.save(walletTransaction, data.wallet());
 
         log.info("Transação criada: {}", transaction);
