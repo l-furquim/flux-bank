@@ -33,8 +33,6 @@ public class RedisCacheService implements CacheService {
 
             boolean isSessionAlreadyActive = redisTemplate.hasKey(userSessionsKey);
 
-            log.info(String.valueOf(isSessionAlreadyActive));
-
             if(isSessionAlreadyActive){
                 this.removeTokenFromCache(userSessionsKey);
             }

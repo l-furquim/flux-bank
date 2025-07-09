@@ -5,16 +5,17 @@ meta {
 }
 
 post {
-  url: http://localhost:8081/api/v1/wallets/deposit
+  url: http://localhost:8080/api/v1/wallets/deposit
   body: json
   auth: inherit
 }
 
 body:json {
   {
-    "amount": 190.09,
-    "walletId": "48473438-28df-41cd-a17f-59365ba3f8dd",
-    "type": "DEBIT",
+    "amount": 90000.09,
+    "transactionId": "f2bbd12e-6728-4495-9f1c-b75db2b6abf4",
+    "walletId": "fed50be5-9cf7-40c8-bbdb-fb0e40ef13bb",
+    "type": "PIX",
     "metadata": "{pix: aaaaaa}",
     "description": "Fazendo pix pro meu pai 2"
   }

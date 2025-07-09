@@ -1,20 +1,35 @@
 services:
 
   # Infrastructure
-  postgres:
+  wallet-postgres:
     image: postgres:latest
-    container_name: fluxbank-postgres
+    container_name: fluxbank-wallet-postgres
     restart: unless-stopped
     ports: 
-    - 5432:5432
+    - "5432:5432"
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: fluxbank
     volumes:
-      - fluxbank_postgres_data:/var/lib/postgresql/data
+      - fluxbank_wallet_postgres_data:/var/lib/postgresql/data
     #networks:
     # - fluxbank-database-network
+  user-postgres:
+    image: postgres:latest
+    container_name: fluxbank-user-postgres
+    restart: unless-stopped
+    ports: 
+      - "5433:5432" 
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: fluxbank
+    volumes:
+      - fluxbank_user_postgres_data:/var/lib/postgresql/data
+    #networks:
+    # - fluxbank-database-network
+ 
   redis:
     image: redis:latest
     container_name: fluxbank-redis
@@ -114,6 +129,7 @@ networks:
     name: fluxbank-database-network
   
 volumes:
-  fluxbank_postgres_data:
+  fluxbank_wallet_postgres_data:
+  fluxbank_user_postgres_data:
   fluxbank_mongo_data:
   fluxbank_grafana_data:

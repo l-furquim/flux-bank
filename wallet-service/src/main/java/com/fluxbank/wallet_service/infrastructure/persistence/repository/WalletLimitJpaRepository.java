@@ -23,8 +23,7 @@ public interface WalletLimitJpaRepository extends JpaRepository<WalletLimitEntit
     @Modifying
     @Query(
             "UPDATE WalletLimitEntity " +
-            "w SET w.limitAmount = :amount, " +
-            "w.usedAmount = w.usedAmount + :amount, " +
+            "w SET w.usedAmount = w.usedAmount + :amount, " +
             "w.status = :status " +
             "WHERE w.id = :id")
     void updateWalletLimit(@Param("id") UUID id, @Param("amount") BigDecimal amount, @Param("status") LimitStatus status);

@@ -86,7 +86,7 @@ public class WalletLimitDomainService implements WalletLimitPort {
                 limit.setStatus(LimitStatus.EXCEEDED);
             }
 
-            adapter.updateWalletLimit(limit.getId(), limit.getLimitAmount(), limit.getStatus());
+            adapter.updateWalletLimit(limit.getId(),request.amount(), limit.getStatus());
         }
     }
 

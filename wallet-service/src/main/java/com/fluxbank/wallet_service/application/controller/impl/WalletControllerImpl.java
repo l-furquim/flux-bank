@@ -55,7 +55,7 @@ public class WalletControllerImpl implements IWalletController {
     @PostMapping("/withdraw")
     public ResponseEntity<WithDrawResponse> withdraw(
             @Valid @RequestBody WithDrawRequest request,
-            @RequestHeader("X-User_Id") String userId
+            @RequestHeader("X-User-Id") String userId
     ) {
         TransactionResult result = port.withDraw(request, userId);
 

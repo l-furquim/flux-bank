@@ -1,6 +1,5 @@
 package com.fluxbank.wallet_service.infrastructure.persistence.mapper;
 
-import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntity;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletTransactionEntity;

@@ -36,6 +36,8 @@ public class WalletTransactionDomainService implements WalletTransactionPort {
         WalletTransaction walletTransaction = WalletTransaction.builder()
                 .transactionType(data.transactionType())
                 .wallet(data.wallet())
+                .transactionId(data.transactionId())
+                .metadata(data.metadata())
                 .status(TransactionStatus.COMPLETED)
                 .description(data.description())
                 .balanceAfter(balanceAfter)

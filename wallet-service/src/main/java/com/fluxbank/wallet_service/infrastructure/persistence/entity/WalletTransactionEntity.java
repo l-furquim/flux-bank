@@ -54,11 +54,9 @@ public class WalletTransactionEntity {
     private TransactionStatus status;
 
     @CreationTimestamp
-    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @Column(nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(columnDefinition = "TEXT")
