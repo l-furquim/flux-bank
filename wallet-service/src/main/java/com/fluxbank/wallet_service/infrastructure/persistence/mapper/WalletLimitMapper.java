@@ -9,9 +9,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class WalletLimitMapper {
 
-    public WalletLimit toDomain(WalletLimitEntity walletLimit, Wallet wallet) {
+    private final WalletMapper walletMapper;
+
+    public WalletLimitMapper(WalletMapper walletMapper) {
+        this.walletMapper = walletMapper;
+    }
+
+    public WalletLimit toDomain(WalletLimitEntity walletLimit) {
         return WalletLimit.builder()
-                .wallet(wallet)
+                .id(walletLimit.getId())
+                .wallet(walletMapper.toDomain(walletLimit.getWallet()))
                 .status(walletLimit.getStatus())
                 .limitAmount(walletLimit.getLimitAmount())
                 .limitType(walletLimit.getLimitType())

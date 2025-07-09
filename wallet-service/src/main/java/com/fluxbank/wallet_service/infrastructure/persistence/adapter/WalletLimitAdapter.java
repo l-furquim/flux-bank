@@ -7,7 +7,6 @@ import com.fluxbank.wallet_service.domain.models.WalletLimit;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntity;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletLimitEntity;
 import com.fluxbank.wallet_service.infrastructure.persistence.mapper.WalletLimitMapper;
-import com.fluxbank.wallet_service.infrastructure.persistence.mapper.WalletMapper;
 import com.fluxbank.wallet_service.infrastructure.persistence.repository.WalletLimitJpaRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
@@ -22,12 +21,10 @@ public class WalletLimitAdapter {
 
     private final WalletLimitJpaRepository repository;
     private final WalletLimitMapper mapper;
-    private final WalletMapper walletMapper;
 
-    public WalletLimitAdapter(WalletLimitJpaRepository repository, WalletLimitMapper mapper, WalletMapper walletMapper) {
+    public WalletLimitAdapter(WalletLimitJpaRepository repository, WalletLimitMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
-        this.walletMapper = walletMapper;
     }
 
     public void create(WalletLimit walletLimit, WalletEntity wallet) {
@@ -43,7 +40,7 @@ public class WalletLimitAdapter {
 
         return limitsFounded
                 .stream()
-                .map(l -> mapper.toDomain(l, walletMapper.toDomain(l.getWallet())))
+                .map(mapper::toDomain)
                 .toList();
     }
 
@@ -55,6 +52,14 @@ public class WalletLimitAdapter {
     public Optional<WalletLimit> findWalletLimitByTypeAndWalletId(LimitType type, Wallet wallet) {
         Optional<WalletLimitEntity> walletLimit = repository.findWalletLimitByTypeAndWalletId(wallet.getId(), type);
 
-        return walletLimit.map(walletLimitEntity -> mapper.toDomain(walletLimitEntity, wallet));
+        return walletLimit.map(mapper::toDomain);
     }
+
+    public Optional<WalletLimit> findById(UUID limitId){
+        Optional<WalletLimitEntity> limit = repository.findById(limitId);
+
+        return limit.map(mapper::toDomain);
+    }
+
+
 }

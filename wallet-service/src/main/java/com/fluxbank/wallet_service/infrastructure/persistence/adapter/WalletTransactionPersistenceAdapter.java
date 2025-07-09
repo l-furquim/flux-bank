@@ -1,6 +1,7 @@
 package com.fluxbank.wallet_service.infrastructure.persistence.adapter;
 
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
+import com.fluxbank.wallet_service.domain.enums.TransactionType;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntity;
@@ -11,6 +12,8 @@ import com.fluxbank.wallet_service.infrastructure.persistence.repository.WalletT
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -36,6 +39,15 @@ public class WalletTransactionPersistenceAdapter {
     @Transactional
     public void updateWalletTransactionStatus(UUID walletTransactionId, TransactionStatus status) {
         repository.updateStatus(status, walletTransactionId);
+    }
+
+    public List<WalletTransaction> findFilteredTransactions(UUID walletId, List<TransactionType> types, LocalDateTime start){
+        List<WalletTransactionEntity> entities = repository
+                .findFilteredTransactions(walletId, types, start);
+
+        return entities.stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 
 

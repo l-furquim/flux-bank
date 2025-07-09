@@ -8,10 +8,13 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Builder
 @Data
 public class WalletLimit {
+
+    private UUID id;
 
     private Wallet wallet;
 
@@ -42,5 +45,10 @@ public class WalletLimit {
     public boolean isLimitExceeded() {
         return usedAmount.compareTo(limitAmount) >= 0;
     }
+
+    public void subtractLimit(BigDecimal amount) {
+        this.usedAmount = this.usedAmount.add(amount);
+    }
+
 
 }
