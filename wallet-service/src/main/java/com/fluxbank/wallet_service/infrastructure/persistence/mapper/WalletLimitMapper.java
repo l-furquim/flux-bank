@@ -36,7 +36,6 @@ public class WalletLimitMapper {
                 .limitAmount(walletLimit.getLimitAmount())
                 .limitType(walletLimit.getLimitType())
                 .resetDate(walletLimit.getResetDate())
-                .usedAmount(walletLimit.getUsedAmount())
                 .build();
     }
 

@@ -50,10 +50,8 @@ public class WalletLimitEntity {
     private LimitStatus status;
 
     @CreationTimestamp
-    @NotNull
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
-    @NotNull
     private LocalDateTime updatedAt;
 }

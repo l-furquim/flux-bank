@@ -6,12 +6,8 @@ import com.fluxbank.wallet_service.application.port.WalletPort;
 import com.fluxbank.wallet_service.application.port.WalletTransactionPort;
 import com.fluxbank.wallet_service.domain.enums.Currency;
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
-import com.fluxbank.wallet_service.domain.enums.TransactionType;
 import com.fluxbank.wallet_service.domain.enums.WalletStatus;
-import com.fluxbank.wallet_service.domain.exception.wallet.DuplicatedWalletCurrencyException;
-import com.fluxbank.wallet_service.domain.exception.wallet.UnauthorizedWithDrawRequest;
-import com.fluxbank.wallet_service.domain.exception.wallet.UnnauthorizedBalanceRequestException;
-import com.fluxbank.wallet_service.domain.exception.wallet.WalletNotFoundException;
+import com.fluxbank.wallet_service.domain.exception.wallet.*;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
@@ -70,9 +66,13 @@ public class WalletDomainService implements WalletPort {
                 .currency(currencyConverted)
                 .build();
 
-        walletLimitService.createInitialLimit(wallet);
+        Wallet walletPersisted = adapter.saveWallet(wallet);
 
-        return adapter.saveWallet(wallet);
+        log.info("ID da wallet criada: {}", walletPersisted.getId());
+
+        walletLimitService.createInitialLimit(walletPersisted);
+
+        return walletPersisted;
     }
 
     // @CacheEvict()
@@ -154,7 +154,7 @@ public class WalletDomainService implements WalletPort {
     }
 
     @Override
-    public WithDrawResponse withDraw(WithDrawRequest request, String userId) {
+    public TransactionResult withDraw(WithDrawRequest request, String userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
         Wallet wallet = this.adapter.findWalletById(walletId);
@@ -169,7 +169,11 @@ public class WalletDomainService implements WalletPort {
             throw new UnauthorizedWithDrawRequest();
         }
 
-        WalletTransaction walletTransaction = walletTransactionService.create(new CreateWalletTransactionDto(
+        if(!wallet.hasAvailableBalance(request.amount())){
+            throw new InsufficientBalanceException();
+        }
+
+        WalletTransaction transaction = walletTransactionService.create(new CreateWalletTransactionDto(
                 wallet,
                 request.transactionId(),
                 request.type(),
@@ -179,15 +183,38 @@ public class WalletDomainService implements WalletPort {
                 Optional.of(TransactionStatus.COMPLETED)
         ));
 
-        if(request.type().equals(TransactionType.CREDIT))  {
-            walletLimitService.updateWalletLimit();
-        }
+        walletLimitService.updateWalletLimit(new UpdateWalletLimitRequest(wallet, request.amount(), request.type()));
 
         wallet.withDraw(request.amount());
 
         adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
 
+        long processedMs = Duration.between(
+                transaction.getCreatedAt(),
+                LocalDateTime.now()
+        ).toMillis();
 
+        eventService.sendTransactionConfirmation(
+                new WalletUpdatedEventDto(
+                        transaction.getTransactionId(),
+                        wallet.getUserId().toString(),
+                        transaction.getTransactionType().toString(),
+                        transaction.getStatus().toString(),
+                        request.amount(),
+                        wallet.getCurrency().toString(),
+                        processedMs,
+                        Instant.now(),
+                        "walletDomainService"
+                )
+        );
+
+        return new TransactionResult(
+                request.transactionId(),
+                request.type(),
+                wallet.getCurrency(),
+                request.amount(),
+                transaction.getCreatedAt()
+        );
     }
 
 }

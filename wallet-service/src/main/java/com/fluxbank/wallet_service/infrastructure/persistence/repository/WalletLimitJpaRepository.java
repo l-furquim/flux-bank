@@ -17,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface WalletLimitJpaRepository extends JpaRepository<WalletLimitEntity, UUID> {
 
-    @Query("SELECT w FROM WalletLimitEntity w WHERE w.userId = :userId AND w.walletId = :walletId")
+    @Query("SELECT w FROM WalletLimitEntity w WHERE w.wallet.userId = :userId AND w.wallet.id = :walletId")
     List<WalletLimitEntity> findByUserAndWalletId(@Param("userId") UUID userId, @Param("walletId") UUID walletId);
 
     @Modifying
@@ -29,7 +29,10 @@ public interface WalletLimitJpaRepository extends JpaRepository<WalletLimitEntit
             "WHERE w.id = :id")
     void updateWalletLimit(@Param("id") UUID id, @Param("amount") BigDecimal amount, @Param("status") LimitStatus status);
 
-    @Query("SELECT w from WalletLimitEntity w WHERE w.walletId = :walletId AND w.type = :type")
+    @Query("SELECT w from WalletLimitEntity w WHERE w.wallet.id = :walletId AND w.limitType = :type")
     Optional<WalletLimitEntity> findWalletLimitByTypeAndWalletId(@Param("walletId") UUID walletId, @Param("type") LimitType type);
+
+    @Query("SELECT w FROM WalletLimitEntity w WHERE w.wallet.id = :walletId")
+    List<WalletLimitEntity> findWalletLimitsByWalletId(@Param("walletId") UUID walletId);
 
 }

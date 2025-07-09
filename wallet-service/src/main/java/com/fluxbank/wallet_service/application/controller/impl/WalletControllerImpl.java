@@ -57,7 +57,9 @@ public class WalletControllerImpl implements IWalletController {
             @Valid @RequestBody WithDrawRequest request,
             @RequestHeader("X-User_Id") String userId
     ) {
+        TransactionResult result = port.withDraw(request, userId);
 
+        return ResponseEntity.ok().body(new WithDrawResponse(result));
     }
 
 }

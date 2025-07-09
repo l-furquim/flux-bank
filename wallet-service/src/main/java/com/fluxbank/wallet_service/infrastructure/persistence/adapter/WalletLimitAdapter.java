@@ -35,15 +35,6 @@ public class WalletLimitAdapter {
         repository.flush();
     }
 
-    public List<WalletLimit> findByUserAndWalletId(UUID userId, UUID walletId) {
-        List<WalletLimitEntity> limitsFounded = repository.findByUserAndWalletId(userId, walletId);
-
-        return limitsFounded
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
-    }
-
     @Transactional
     public void updateWalletLimit(UUID walletLimitId, BigDecimal amount, LimitStatus status){
         repository.updateWalletLimit(walletLimitId, amount, status);
@@ -59,6 +50,12 @@ public class WalletLimitAdapter {
         Optional<WalletLimitEntity> limit = repository.findById(limitId);
 
         return limit.map(mapper::toDomain);
+    }
+
+    public List<WalletLimit> findByWalletId(UUID walletId){
+        List<WalletLimitEntity> limits = repository.findWalletLimitsByWalletId(walletId);
+
+        return limits.stream().map(mapper::toDomain).toList();
     }
 
 

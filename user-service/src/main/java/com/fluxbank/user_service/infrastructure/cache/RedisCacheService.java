@@ -27,19 +27,23 @@ public class RedisCacheService implements CacheService {
     @Override
     public void cacheToken(String token, UserTokenData tokenData) {
         try {
-            String cacheKey = TOKEN_PREFIX + token;
-
-            redisTemplate.opsForValue().set(cacheKey, tokenData, TOKEN_EXPIRATION);
-
             String userSessionsKey = USER_SESSIONS_PREFIX + tokenData.getUserId();
+            String tokenKey = TOKEN_PREFIX + token;
 
-            boolean isSessionAlreadyActive = redisTemplate.opsForValue().get(userSessionsKey) != null;
+
+            boolean isSessionAlreadyActive = redisTemplate.hasKey(userSessionsKey);
+
+            log.info(String.valueOf(isSessionAlreadyActive));
 
             if(isSessionAlreadyActive){
-                this.removeTokenFromCache(token, tokenData);
+                this.removeTokenFromCache(userSessionsKey);
             }
 
-            redisTemplate.opsForSet().add(userSessionsKey, token, TOKEN_EXPIRATION);
+            redisTemplate.opsForValue().set(tokenKey, tokenData);
+            redisTemplate.expire(tokenKey, TOKEN_EXPIRATION);
+
+            redisTemplate.opsForValue().set(userSessionsKey, token);
+            redisTemplate.expire(userSessionsKey, TOKEN_EXPIRATION);
 
             log.debug("Token cached successfully for user: {} with expiration: {}",
                     tokenData.getUserId(), TOKEN_EXPIRATION);
@@ -50,16 +54,17 @@ public class RedisCacheService implements CacheService {
         }
     }
 
-    public void removeTokenFromCache(String token, UserTokenData tokenData) {
+    public void removeTokenFromCache(String sessionKey) {
         try {
-            String cacheKey = TOKEN_PREFIX + token;
 
-            redisTemplate.delete(cacheKey);
+            String token = (String) redisTemplate.opsForValue().get(sessionKey);
 
-//            String userSessionsKey = USER_SESSIONS_PREFIX + tokenData.getUserId();
-//            redisTemplate.opsForSet().remove(userSessionsKey, token);
+            String tokenKey = TOKEN_PREFIX + token;
 
-            log.debug("Token removed from cache: {}", token.substring(0, 10) + "...");
+            redisTemplate.delete(sessionKey);
+            redisTemplate.delete(tokenKey);
+
+            log.debug("Token removed from cache: {}", tokenKey.substring(0, 10) + "...");
 
         } catch (Exception e) {
             log.error("Error removing token from cache", e);
