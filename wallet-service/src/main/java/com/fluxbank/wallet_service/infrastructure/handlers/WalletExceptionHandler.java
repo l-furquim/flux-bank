@@ -1,9 +1,8 @@
 package com.fluxbank.wallet_service.infrastructure.handlers;
 
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
-import com.fluxbank.wallet_service.domain.exception.wallet.DuplicatedWalletCurrencyException;
-import com.fluxbank.wallet_service.domain.exception.wallet.InvalidDepositException;
-import com.fluxbank.wallet_service.domain.exception.wallet.WalletNotFoundException;
+import com.fluxbank.wallet_service.domain.exception.wallet.*;
+import com.fluxbank.wallet_service.domain.exception.walletlimit.LimitBlockedException;
 import com.fluxbank.wallet_service.infrastructure.handlers.dto.ExceptionHandlerResponse;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletTransactionPersistenceAdapter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,6 +57,21 @@ public class WalletExceptionHandler extends GenericExceptionHandler {
     ) {
         return this.buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
     }
+
+    @ExceptionHandler(UnauthorizedWithDrawRequest.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleUnauthorizedWithdraw(
+            UnauthorizedWithDrawRequest ex, HttpServletRequest request
+    ) {
+        return this.buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleInsufficientBalance(
+            InsufficientBalanceException ex, HttpServletRequest request
+    ) {
+        return this.buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI());
+    }
+
 
 
 }

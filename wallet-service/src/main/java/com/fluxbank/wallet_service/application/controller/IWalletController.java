@@ -90,6 +90,53 @@ public interface IWalletController {
             @RequestHeader("X-User-Id") String userId
     );
 
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Saque realizado com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Carteira para o saque não pertence ao usuario logado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Carteira esta em um estado invalido",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Carteira não possui o saldo necessario",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Limite para a operação esta bloqueado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "422",
+                    description = "Limite insuficiente para a operação",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Carteira não encontrada",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Limite não encontrado",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
     public ResponseEntity<WithDrawResponse> withdraw(
             @Valid @RequestBody WithDrawRequest request,
             @RequestHeader("X-User_Id") String userId
