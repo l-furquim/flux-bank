@@ -1,10 +1,7 @@
 package com.fluxbank.user_service.interfaces.controller.impl;
 
-import com.fluxbank.user_service.application.usecase.AuthUserUsecase;
-import com.fluxbank.user_service.application.usecase.ChangeProfileUsecase;
-import com.fluxbank.user_service.application.usecase.GetProfileUsecase;
+import com.fluxbank.user_service.application.usecase.*;
 import com.fluxbank.user_service.interfaces.dto.*;
-import com.fluxbank.user_service.application.usecase.RegisterUserUsecase;
 import com.fluxbank.user_service.interfaces.controller.UserController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -25,12 +22,14 @@ public class UserControllerImpl implements UserController {
     private final AuthUserUsecase authUsecase;
     private final GetProfileUsecase getProfileUsecase;
     private final ChangeProfileUsecase changeProfileUsecase;
+    private final CreatePixKeyUsecase createPixUsecase;
 
-    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase) {
+    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase, CreatePixKeyUsecase createPixUsecase) {
         this.registerUsecase = registerUsecase;
         this.authUsecase = authUsecase;
         this.getProfileUsecase = getProfileUsecase;
         this.changeProfileUsecase = changeProfileUsecase;
+        this.createPixUsecase = createPixUsecase;
     }
 
     @PostMapping("/register")
@@ -80,6 +79,16 @@ public class UserControllerImpl implements UserController {
         changeProfileUsecase.change(request, userId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/pix-keys")
+    public ResponseEntity<Void> createPixKey(
+            @Valid @RequestBody CreatePixKeyRequest request,
+            @RequestHeader("X-User-Id") String userId
+    ){
+        createPixUsecase.create(request, userId);
+
+        return ResponseEntity.status(201).build();
     }
 
 }

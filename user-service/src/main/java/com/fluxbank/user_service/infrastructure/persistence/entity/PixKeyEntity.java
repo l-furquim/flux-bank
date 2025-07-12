@@ -25,7 +25,7 @@ public class PixKeyEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank
+    @NotNull
     private UUID ownerId;
 
     @NotNull

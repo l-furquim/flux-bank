@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -17,5 +18,8 @@ public interface PixKeyJpaRepository extends JpaRepository<PixKeyEntity, UUID> {
 
     @Query("DELETE FROM PixKeyEntity p WHERE p.id = :id")
     void deletePixKeyById(@Param("id") UUID id);
+
+    @Query("SELECT p FROM PixKeyEntity p WHERE p.ownerId = :userId AND p.type = 'CPF'")
+    Optional<PixKeyEntity> findCpfKeyByUserId(@Param("userId") UUID userId);
 
 }

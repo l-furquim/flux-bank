@@ -1,6 +1,7 @@
 package com.fluxbank.user_service.infrastructure.persistence.impl;
 
 import com.fluxbank.user_service.domain.model.PixKey;
+import com.fluxbank.user_service.domain.model.User;
 import com.fluxbank.user_service.domain.repository.PixKeyRepository;
 import com.fluxbank.user_service.infrastructure.persistence.PixKeyJpaRepository;
 import com.fluxbank.user_service.infrastructure.persistence.entity.PixKeyEntity;
@@ -9,6 +10,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -52,5 +54,12 @@ public class PixKeyRepositoryJpaImpl implements PixKeyRepository {
     @Override
     public void deletePixKey(UUID pixKeyId) {
         repository.deletePixKeyById(pixKeyId);
+    }
+
+    @Override
+    public PixKey findCpfKeyByUser(User user) {
+        Optional<PixKeyEntity> key = repository.findCpfKeyByUserId(user.getId());
+
+        return key.map(mapper::toDomain).orElse(null);
     }
 }

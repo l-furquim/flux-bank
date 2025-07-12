@@ -1,9 +1,6 @@
 package com.fluxbank.user_service.interfaces.controller;
 
-import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
-import com.fluxbank.user_service.interfaces.dto.ChangeUserProfileRequest;
-import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
-import com.fluxbank.user_service.interfaces.dto.GetUserProfileResponse;
+import com.fluxbank.user_service.interfaces.dto.*;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -99,6 +96,38 @@ public interface UserController {
     })
     public ResponseEntity<Void> changeProfile(
             @Valid @RequestHeader ChangeUserProfileRequest request,
+            @RequestHeader("X-User-Id") String userId
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Chave pix criada com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Usuario autenticado não encontrado no banco.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados inválidos ou faltantes para a criação da chave.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Chave ja existente com esse valor ou chave do tipo cpf ja criada no banco.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Void> createPixKey(
+            @Valid @RequestBody CreatePixKeyRequest request,
             @RequestHeader("X-User-Id") String userId
     );
 

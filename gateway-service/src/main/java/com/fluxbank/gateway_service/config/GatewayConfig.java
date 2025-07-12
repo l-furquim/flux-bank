@@ -36,7 +36,7 @@ public class GatewayConfig {
                         .uri(walletRoute))
 
                 .route("user-service", r -> r
-                        .path("/api/v1/users/profile")
+                        .path("/api/v1/users/profile", "/api/v1/users/pix-keys")
 
                         .filters(f -> f.filter(userContextFilter))
 
