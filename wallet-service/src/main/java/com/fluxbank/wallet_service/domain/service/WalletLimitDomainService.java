@@ -15,12 +15,14 @@ import com.fluxbank.wallet_service.domain.strategy.WalletLimitResetStrategy;
 import com.fluxbank.wallet_service.domain.strategy.factories.WalletLimitResetStrategyFactory;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletLimitAdapter;
 import com.fluxbank.wallet_service.infrastructure.persistence.entity.WalletEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Service
 public class WalletLimitDomainService implements WalletLimitPort {
 
@@ -64,29 +66,20 @@ public class WalletLimitDomainService implements WalletLimitPort {
 
         List<WalletLimit> applicableLimits = limits.stream()
                 .filter(limit -> isApplicable(limit, request.type()))
+                .peek(limit -> validateLimitDisposability(limit, request.amount()))
                 .toList();
 
         for (WalletLimit limit : applicableLimits) {
-            if (limit.getStatus() == LimitStatus.EXCEEDED ||
-                    limit.getStatus() == LimitStatus.INACTIVE ||
-                    limit.isLimitExceeded()) {
-                throw new LimitBlockedException();
+            if(!limit.getLimitType().equals(LimitType.SINGLE_TRANSACTION)) {
+                limit.subtractLimit(request.amount());
+
+
+                if (limit.isLimitExceeded()) {
+                    limit.setStatus(LimitStatus.EXCEEDED);
+                }
+
+                adapter.updateWalletLimit(limit.getId(),request.amount(), limit.getStatus());
             }
-
-            if (!limit.hasAvailableLimit(request.amount())) {
-                throw new UnavailableLimitException(
-                        "You don't have %s limit to do that operation, please wait until the reset date."
-                                .formatted(limit.getLimitType().toString().toLowerCase())
-                );
-            }
-
-            limit.subtractLimit(request.amount());
-
-            if (limit.isLimitExceeded()) {
-                limit.setStatus(LimitStatus.EXCEEDED);
-            }
-
-            adapter.updateWalletLimit(limit.getId(),request.amount(), limit.getStatus());
         }
     }
 
@@ -145,8 +138,23 @@ public class WalletLimitDomainService implements WalletLimitPort {
 
     private boolean isApplicable(WalletLimit limit, TransactionType transactionType) {
         return switch (limit.getLimitType()) {
-            case DAILY_PIX, MONTHLY_PIX -> transactionType == TransactionType.PIX;
+            case DAILY_PIX, MONTHLY_PIX -> transactionType.equals(TransactionType.PIX);
             case DAILY_TRANSACTION, MONTHLY_TRANSACTION, SINGLE_TRANSACTION -> true;
         };
+    }
+    private void validateLimitDisposability(WalletLimit limit, BigDecimal amount) {
+        if (
+            limit.isLimitExceeded() ||
+            limit.getStatus() == LimitStatus.INACTIVE
+        ) {
+            throw new LimitBlockedException();
+        }
+
+        if (!limit.hasAvailableLimit(amount)) {
+            throw new UnavailableLimitException(
+                    "You don't have %s limit to do that operation."
+                            .formatted(limit.getLimitType().toString().toLowerCase())
+            );
+        }
     }
 }
