@@ -131,5 +131,26 @@ public interface UserController {
             @RequestHeader("X-User-Id") String userId
     );
 
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Busca realizada com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Usuario autenticado não encontrado no banco.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<GetUserPixKeysResponse> getPixKeys(
+            @RequestHeader("X-User-Id") String userId
+    );
+
 
 }

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -23,13 +22,15 @@ public class UserControllerImpl implements UserController {
     private final GetProfileUsecase getProfileUsecase;
     private final ChangeProfileUsecase changeProfileUsecase;
     private final CreatePixKeyUsecase createPixUsecase;
+    private final GetUserPixKeysUsecase getPixKeysUsecase;
 
-    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase, CreatePixKeyUsecase createPixUsecase) {
+    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase, CreatePixKeyUsecase createPixUsecase, GetUserPixKeysUsecase getPixKeysUsecase) {
         this.registerUsecase = registerUsecase;
         this.authUsecase = authUsecase;
         this.getProfileUsecase = getProfileUsecase;
         this.changeProfileUsecase = changeProfileUsecase;
         this.createPixUsecase = createPixUsecase;
+        this.getPixKeysUsecase = getPixKeysUsecase;
     }
 
     @PostMapping("/register")
@@ -89,6 +90,15 @@ public class UserControllerImpl implements UserController {
         createPixUsecase.create(request, userId);
 
         return ResponseEntity.status(201).build();
+    }
+
+    @GetMapping("/pix-keys")
+    public ResponseEntity<GetUserPixKeysResponse> getPixKeys(
+            @RequestHeader("X-User-Id") String userId
+    ){
+        GetUserPixKeysResponse response = getPixKeysUsecase.get(userId);
+
+        return ResponseEntity.status(200).body(response);
     }
 
 }
