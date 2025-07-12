@@ -9,6 +9,7 @@ import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
 import com.fluxbank.wallet_service.domain.enums.WalletStatus;
 import com.fluxbank.wallet_service.domain.exception.wallet.*;
 import com.fluxbank.wallet_service.domain.models.Wallet;
+import com.fluxbank.wallet_service.domain.models.WalletLimit;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
 import com.fluxbank.wallet_service.infrastructure.service.WalletEventService;
@@ -215,6 +216,49 @@ public class WalletDomainService implements WalletPort {
                 request.amount(),
                 transaction.getCreatedAt()
         );
+    }
+
+    @Override
+    public GetWalletLimitsResponse getLimits(GetWalletLimitsRequest request, UUID userId) {
+        UUID walletId = UUID.fromString(request.walletId());
+
+        Wallet wallet = this.adapter.findWalletById(walletId);
+
+        if(wallet == null) {
+            throw new WalletNotFoundException();
+        }
+
+        validateWalletUsage(wallet, userId);
+
+        List<WalletLimit> limits = this.walletLimitService.findByWallet(wallet);
+
+        List<LimitInformationDto> infos = limits
+                .stream()
+                .map(limit -> {
+                    return new LimitInformationDto(
+                            limit.getLimitType(),
+                            limit.getLimitAmount(),
+                            limit.getUsedAmount(),
+                            limit.getStatus(),
+                            limit.getUpdatedAt()
+                    );
+                }).toList();
+
+        return new GetWalletLimitsResponse(infos);
+    }
+
+    private void validateWalletUsage(Wallet wallet, UUID userId){
+        if(!wallet.getUserId().equals(userId)) {
+            throw new UnauthorizedOperationException("Unauthorized operation.");
+        }
+
+        if(wallet.isClosed()){
+            throw new UnauthorizedOperationException("The wallet is current closed.");
+        }
+
+        if(!wallet.isAllowedToUse()){
+            throw new UnauthorizedOperationException("This wallet is blocked or suspend, please verify the wallet status and see what you can do.");
+        }
     }
 
 }

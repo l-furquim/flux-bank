@@ -110,6 +110,11 @@ public class WalletLimitDomainService implements WalletLimitPort {
         adapter.updateWalletLimit(limit.getId(), limit.getLimitAmount(), limit.getStatus());
     }
 
+    @Override
+    public List<WalletLimit> findByWallet(Wallet wallet) {
+        return adapter.findByWalletId(wallet.getId());
+    }
+
     private List<TransactionType> getCorrectType(LimitType type) {
         return switch (type) {
             case DAILY_PIX, MONTHLY_PIX -> List.of(TransactionType.PIX);

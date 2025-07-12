@@ -62,4 +62,15 @@ public class WalletControllerImpl implements IWalletController {
         return ResponseEntity.ok().body(new WithDrawResponse(result));
     }
 
+    @GetMapping("/limits")
+    public ResponseEntity<GetWalletLimitsResponse> getLimits(
+            @Valid @RequestBody GetWalletLimitsRequest request,
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        GetWalletLimitsResponse response = port.getLimits(request, UUID.fromString(userId));
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
 }

@@ -72,6 +72,13 @@ public class WalletExceptionHandler extends GenericExceptionHandler {
         return this.buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(UnauthorizedOperationException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleUnauthorizedOperation(
+            UnauthorizedOperationException ex, HttpServletRequest request
+    ) {
+        return this.buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+    }
+
 
 
 }

@@ -11,4 +11,6 @@ public interface WalletPort {
     TransactionResult deposit(DepositInWalletRequest data);
     GetWalletBalanceResponse balance(GetWalletBalanceRequest request, UUID userId);
     TransactionResult withDraw(WithDrawRequest request, String userId);
+    GetWalletLimitsResponse getLimits(GetWalletLimitsRequest request, UUID userId);
+
 }

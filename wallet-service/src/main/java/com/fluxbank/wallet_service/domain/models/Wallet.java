@@ -32,6 +32,14 @@ public class Wallet {
 
     private LocalDateTime updatedAt;
 
+    public boolean isAllowedToUse() {
+        return this.walletStatus.equals(WalletStatus.ACTIVE);
+    }
+
+    public boolean isClosed() {
+        return this.walletStatus.equals(WalletStatus.CLOSED);
+    }
+
     public BigDecimal getAvailableBalance() {
         return balance.subtract(blockedAmount != null ? blockedAmount : BigDecimal.ZERO);
     }

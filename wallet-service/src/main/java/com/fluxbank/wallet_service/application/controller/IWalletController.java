@@ -142,4 +142,31 @@ public interface IWalletController {
             @RequestHeader("X-User_Id") String userId
     );
 
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Limites bucados com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Operação invalida para a carteira",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Carteira não encontrada",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<GetWalletLimitsResponse> getLimits(
+            @Valid @RequestBody GetWalletLimitsRequest request,
+            @RequestHeader("X-User-Id") String userId
+    );
+
 }
