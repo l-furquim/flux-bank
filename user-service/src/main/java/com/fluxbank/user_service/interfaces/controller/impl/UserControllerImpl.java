@@ -1,10 +1,9 @@
 package com.fluxbank.user_service.interfaces.controller.impl;
 
 import com.fluxbank.user_service.application.usecase.AuthUserUsecase;
-import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
-import com.fluxbank.user_service.interfaces.dto.AuthUserResponse;
-import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
-import com.fluxbank.user_service.interfaces.dto.UserDeviceDto;
+import com.fluxbank.user_service.application.usecase.ChangeProfileUsecase;
+import com.fluxbank.user_service.application.usecase.GetProfileUsecase;
+import com.fluxbank.user_service.interfaces.dto.*;
 import com.fluxbank.user_service.application.usecase.RegisterUserUsecase;
 import com.fluxbank.user_service.interfaces.controller.UserController;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +23,14 @@ public class UserControllerImpl implements UserController {
 
     private final RegisterUserUsecase registerUsecase;
     private final AuthUserUsecase authUsecase;
+    private final GetProfileUsecase getProfileUsecase;
+    private final ChangeProfileUsecase changeProfileUsecase;
 
-    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase) {
+    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase) {
         this.registerUsecase = registerUsecase;
         this.authUsecase = authUsecase;
+        this.getProfileUsecase = getProfileUsecase;
+        this.changeProfileUsecase = changeProfileUsecase;
     }
 
     @PostMapping("/register")
@@ -60,5 +63,23 @@ public class UserControllerImpl implements UserController {
                 .body("Login realizado com sucesso");
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<GetUserProfileResponse> getProfile(
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        GetUserProfileResponse response = getProfileUsecase.get(userId);
+
+        return ResponseEntity.ok().body(response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<Void> changeProfile(
+            @Valid @RequestBody ChangeUserProfileRequest request,
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        changeProfileUsecase.change(request, userId);
+
+        return ResponseEntity.noContent().build();
+    }
 
 }

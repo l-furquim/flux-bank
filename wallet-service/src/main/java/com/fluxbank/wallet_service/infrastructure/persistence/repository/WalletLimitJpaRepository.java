@@ -34,4 +34,25 @@ public interface WalletLimitJpaRepository extends JpaRepository<WalletLimitEntit
     @Query("SELECT w FROM WalletLimitEntity w WHERE w.wallet.id = :walletId")
     List<WalletLimitEntity> findWalletLimitsByWalletId(@Param("walletId") UUID walletId);
 
+    @Modifying
+    @Query(
+            """
+               UPDATE WalletLimitEntity
+               SET usedAmount = 0.00
+               WHERE limitType IN ('DAILY_TRANSACTION', 'DAILY_PIX')
+            """
+    )
+    void resetDailyLimits();
+
+    @Modifying
+    @Query(
+            """
+               UPDATE WalletLimitEntity
+               SET usedAmount = 0.00
+               WHERE limitType IN ('MONTHLY_PIX', 'MONTHLY_TRANSACTION')
+            """
+    )
+    void resetMonthlyLimits();
+
+
 }

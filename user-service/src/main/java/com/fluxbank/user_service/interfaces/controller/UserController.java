@@ -1,7 +1,9 @@
 package com.fluxbank.user_service.interfaces.controller;
 
 import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
+import com.fluxbank.user_service.interfaces.dto.ChangeUserProfileRequest;
 import com.fluxbank.user_service.interfaces.dto.CreateUserRequest;
+import com.fluxbank.user_service.interfaces.dto.GetUserProfileResponse;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -56,5 +58,49 @@ public interface UserController {
             @Valid @RequestBody AuthUserRequest request,
             @RequestHeader("User-Agent") String agent
     );
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Dados buscados com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Usuario autenticado não encontrado no banco.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<GetUserProfileResponse> getProfile(
+            @RequestHeader("X-User-Id") String userId
+    );
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Dados atualizados com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Usuario autenticado não encontrado no banco.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Void> changeProfile(
+            @Valid @RequestHeader ChangeUserProfileRequest request,
+            @RequestHeader("X-User-Id") String userId
+    );
+
 
 }

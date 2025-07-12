@@ -64,7 +64,12 @@ public class UserExceptionHandler extends GenericExceptionHandler {
         return this.buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleUserNotFound(
+            UserNotFoundException ex, HttpServletRequest request
+    ) {
 
-
+        return this.buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
+    }
 
 }

@@ -7,30 +7,27 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: 6379
-  endpoints:
-    web:
-      exposure:
-        include: health, info, metrics, prometheus
-
+management:
   endpoint:
     health:
       show-details: always
-
-  prometheus:
-    metrics:
-      export:
-        enabled: true
-
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
   metrics:
     enable:
       jvm: true
+    export:
+      prometheus:
+        enabled: true
     distribution:
       sla:
         http:
           server:
             requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
     tags:
-      application: gateway-service
+      application: wallet-service
 gateway:
   routes:
     wallet-service: ${WALLET_SERVICE_URI:http://localhost:8081}

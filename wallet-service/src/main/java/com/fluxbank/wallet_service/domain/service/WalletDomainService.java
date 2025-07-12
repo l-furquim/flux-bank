@@ -81,7 +81,7 @@ public class WalletDomainService implements WalletPort {
     public TransactionResult deposit(DepositInWalletRequest data){
         UUID walletId = UUID.fromString(data.walletId());
 
-        Wallet wallet = adapter.findWalletById(walletId);
+        Wallet wallet = findWalletById(walletId);
 
         if(wallet == null) {
             throw new WalletNotFoundException();
@@ -136,7 +136,7 @@ public class WalletDomainService implements WalletPort {
     public GetWalletBalanceResponse balance(GetWalletBalanceRequest request, UUID userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
-        Wallet wallet = adapter.findWalletById(walletId);
+        Wallet wallet = findWalletById(walletId);
 
         if (wallet == null) {
             throw new WalletNotFoundException();
@@ -158,7 +158,7 @@ public class WalletDomainService implements WalletPort {
     public TransactionResult withDraw(WithDrawRequest request, String userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
-        Wallet wallet = this.adapter.findWalletById(walletId);
+        Wallet wallet = this.findWalletById(walletId);
 
         if(wallet == null) {
             throw new WalletNotFoundException();
@@ -218,11 +218,16 @@ public class WalletDomainService implements WalletPort {
         );
     }
 
+    @Cacheable(
+            value = "walletLimitsCache",
+            key = "#request.walletId() + ':' + #userId",
+            unless = "#result == null"
+    )
     @Override
     public GetWalletLimitsResponse getLimits(GetWalletLimitsRequest request, UUID userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
-        Wallet wallet = this.adapter.findWalletById(walletId);
+        Wallet wallet = this.findWalletById(walletId);
 
         if(wallet == null) {
             throw new WalletNotFoundException();
@@ -245,6 +250,16 @@ public class WalletDomainService implements WalletPort {
                 }).toList();
 
         return new GetWalletLimitsResponse(infos);
+    }
+
+
+    @Cacheable(
+            value = "walletCache",
+            key = "#walletId",
+            unless = "#result == null"
+    )
+    private Wallet findWalletById(UUID walletId) {
+        return this.adapter.findWalletById(walletId);
     }
 
     private void validateWalletUsage(Wallet wallet, UUID userId){

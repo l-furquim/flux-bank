@@ -5,6 +5,7 @@ import com.fluxbank.user_service.domain.repository.UserRepository;
 import com.fluxbank.user_service.infrastructure.persistence.UserJpaRepository;
 import com.fluxbank.user_service.infrastructure.persistence.entity.UserEntity;
 import com.fluxbank.user_service.infrastructure.persistence.mapper.UserMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -45,4 +46,15 @@ public class UserRepositoryJpaImpl implements UserRepository {
 
         return persistedUser.map(mapper::toDomain);
     }
+
+    @Transactional
+    @Override
+    public void updateUserData(User userWithNewData) {
+        UserEntity userEntity = mapper.toEntity(userWithNewData);
+
+        userEntity.setId(userWithNewData.getId());
+
+        repository.save(userEntity);
+    }
+
 }

@@ -10,5 +10,5 @@ public interface UserRepository {
     Optional<User> findByCpf(String cpf);
     User createUser(User user);
     Optional<User> getUserData(UUID userId);
-
+    void updateUserData(User userWithNewData);
 }

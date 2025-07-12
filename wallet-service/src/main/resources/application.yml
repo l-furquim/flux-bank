@@ -8,6 +8,8 @@ logging:
 server:
   port: 8081
 spring:
+  cache:
+    type: redis
   application:
     name: wallet-service
   data:

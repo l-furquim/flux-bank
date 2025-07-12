@@ -58,5 +58,16 @@ public class WalletLimitAdapter {
         return limits.stream().map(mapper::toDomain).toList();
     }
 
+    @Transactional
+    public void resetDailyLimits(){
+        this.repository.resetDailyLimits();
+    }
+
+    @Transactional
+    public void resetMonthlyLimits(){
+        this.repository.resetMonthlyLimits();
+    }
+
+
 
 }

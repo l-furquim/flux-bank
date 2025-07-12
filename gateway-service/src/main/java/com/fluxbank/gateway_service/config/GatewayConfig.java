@@ -32,7 +32,15 @@ public class GatewayConfig {
                                 "/api/v1/wallets/balance", "/api/v1/wallets/withdraw",
                                 "/api/v1/wallets/limits")
                         .filters(f -> f.filter(userContextFilter))
+
                         .uri(walletRoute))
+
+                .route("user-service", r -> r
+                        .path("/api/v1/users/profile")
+
+                        .filters(f -> f.filter(userContextFilter))
+
+                        .uri(userRoute  ))
 
                 // Rotas públicas - sem filtro de autenticação
                 .route("user-service", r -> r
