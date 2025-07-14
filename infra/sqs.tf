@@ -31,3 +31,28 @@ resource "aws_sqs_queue" "ddl" {
 
   name = "${each.key}-ddl"
 }
+
+resource "aws_sqs_queue_policy" "allow_sns" {
+  for_each = { for queue in var.queues : queue => queue }
+
+  queue_url = aws_sqs_queue.sqs_main[each.key].id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Principal = {
+          Service = "sns.amazonaws.com"
+        },
+        Action   = "sqs:SendMessage",
+        Resource = aws_sqs_queue.sqs_main[each.key].arn,
+        Condition = {
+          ArnEquals = {
+            "aws:SourceArn" = aws_sns_topic.sns_topics["transaction-event-topic"].arn
+          }
+        }
+      }
+    ]
+  })
+}
