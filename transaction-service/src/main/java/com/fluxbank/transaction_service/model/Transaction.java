@@ -6,28 +6,35 @@ import com.fluxbank.transaction_service.model.enums.TransactionType;
 import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionException;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @Entity
 @Table(name = "transactions")
 public abstract class Transaction {
 
+    public Transaction() {
+    }
+
+    public Transaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, String originBill, String destineBill) {
+        this.id = UUID.randomUUID();
+        this.currency = currency;
+        this.description = description;
+        this.status = status;
+        this.amount = amount;
+        this.originBill = originBill;
+        this.destineBill = destineBill;
+    }
+
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Enumerated(EnumType.STRING)
@@ -41,9 +48,6 @@ public abstract class Transaction {
     @Column(precision = 10, scale = 2)
     @NotNull
     private BigDecimal amount;
-
-    @NotNull
-    private String externalIdentifier;
 
     @NotNull
     private String originBill;

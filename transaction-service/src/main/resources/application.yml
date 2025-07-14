@@ -51,3 +51,9 @@ management:
             requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
     tags:
       application: transaction-service
+aws:
+  sqs:
+    fraud-check-completed: aaaaa
+  sns:
+    transaction-initiated-topic: aaaa
+    transaction-completed-topic: aaaa

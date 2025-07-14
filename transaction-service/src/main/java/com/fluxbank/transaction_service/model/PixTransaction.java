@@ -1,25 +1,30 @@
 package com.fluxbank.transaction_service.model;
 
+import com.fluxbank.transaction_service.model.enums.Currency;
+import com.fluxbank.transaction_service.model.enums.TransactionStatus;
 import com.fluxbank.transaction_service.model.enums.TransactionType;
 import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionException;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+@Getter
+@Setter
 @Entity
 @DiscriminatorValue("PIX")
 public class PixTransaction extends Transaction {
+
+    public PixTransaction() {
+    }
+
+    public PixTransaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, String originBill, String destineBill, String key) {
+        super(currency, description, status, amount, originBill, destineBill);
+        this.key = key;
+    }
 
     @NotNull
     private String key;

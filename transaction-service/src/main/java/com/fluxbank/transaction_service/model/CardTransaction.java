@@ -1,6 +1,8 @@
 package com.fluxbank.transaction_service.model;
 
 import com.fluxbank.transaction_service.model.enums.CardType;
+import com.fluxbank.transaction_service.model.enums.Currency;
+import com.fluxbank.transaction_service.model.enums.TransactionStatus;
 import com.fluxbank.transaction_service.model.enums.TransactionType;
 import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionException;
 import jakarta.persistence.DiscriminatorValue;
@@ -8,18 +10,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
+import java.math.BigDecimal;
+
+
+@Getter
+@Setter
 @Entity
 @DiscriminatorValue("CARD")
 public class CardTransaction extends Transaction {
+
+    public CardTransaction() {
+    }
+
+    public CardTransaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, String originBill, String destineBill, String lastFourDigits, String flag, String authCode, int installments, CardType cardType) {
+        super(currency, description, status, amount, originBill, destineBill);
+        this.lastFourDigits = lastFourDigits;
+        this.flag = flag;
+        this.authCode = authCode;
+        this.installments = installments;
+        this.cardType = cardType;
+    }
 
     @NotNull
     private String lastFourDigits;

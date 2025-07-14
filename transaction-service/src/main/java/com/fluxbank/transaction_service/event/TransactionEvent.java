@@ -44,8 +44,7 @@ public class TransactionEvent {
     @NotNull
     private String currency;
 
-    @NotNull
-    private long processingDurationMs;
+    private Long processingDurationMs;
 
     @NotNull
     private Instant timestamp;
