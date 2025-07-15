@@ -1,8 +1,9 @@
-package com.fluxbank.transaction_service.messaging.consumer;
+package com.fluxbank.fraud_service.infrastructure.messaging.consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fluxbank.transaction_service.event.TransactionEvent;
+import com.fluxbank.fraud_service.application.usecase.ValidateTransactionUsecase;
+import com.fluxbank.fraud_service.interfaces.dto.TransactionEventDto;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,9 +13,11 @@ import org.springframework.stereotype.Component;
 public class TransactionInitiatedConsumer {
 
     private final ObjectMapper mapper;
+    private final ValidateTransactionUsecase usecase;
 
-    public TransactionInitiatedConsumer(ObjectMapper mapper) {
+    public TransactionInitiatedConsumer(ObjectMapper mapper, ValidateTransactionUsecase usecase) {
         this.mapper = mapper;
+        this.usecase = usecase;
     }
 
     @SqsListener("fraud")
@@ -26,10 +29,11 @@ public class TransactionInitiatedConsumer {
 
             String messageJson = node.get("Message").asText();
 
-            TransactionEvent event = mapper.readValue(messageJson, TransactionEvent.class);
+            TransactionEventDto event = mapper.readValue(messageJson, TransactionEventDto.class);
 
             log.info("Transaction event received: {}", event);
 
+            usecase.validate(event);
 
         } catch (Exception e) {
             log.error("Error while consuming the transaction.initiated message: {}", e.getMessage());

@@ -48,11 +48,8 @@ management:
     tags:
       application: transaction-service
 aws:
-  sqs:
-    fraud-check-completed: aaaaa
   sns:
-    transaction-initiated-topic: 
-    fraud-topic: aaaa
-    notification-topic: aaaa
-    analytic-topic: aaaa
+    transaction-initiated-topic:
+feign-client:
+  wallet-uri: ${WALLET_SERVICE_URI:http://localhost:8081}
 

@@ -1,0 +1,14 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: fraud-service
+  data:
+    mongodb:
+      uri: mongodb://root:root@localhost:27017/fluxbank?authSource=admin
+aws:
+  sns:
+    fraud-check-completed-topic:
+  lambda:
+    fraud-detection: fraud-dev-lambda
