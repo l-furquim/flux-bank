@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface UserDeviceRepository {
 
-    void createUserDevice(UserDevice device);
+    UserDevice createUserDevice(UserDevice device);
     List<UserDevice> findByUserId(UUID userId);
 
 }

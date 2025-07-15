@@ -9,30 +9,31 @@ variable "region" {
 variable "queues" {
   type = list(string)
   default = [
-    "transaction-queue",
-    "user-queue",
-    "analytics-queue",
-    "wallet-queue",
-    "notification-queue"
+    "transaction",
+    "user",
+    "analytics",
+    "wallet",
+    "notification",
+    "fraud"
   ]
 }
 
 variable "topics" {
   type = list(string)
   default = [
-    "transaction-event-topic",
-    "user-event-topic",
-    "notification-event-topic",
-    "wallet-event-topic",
-    "analytics-event-topic"
+    "transaction-initiated",
+    "fraud-check-completed",
+    "transaction-completed"
   ]
 }
 
 
-variable "event-topics" {
+variable "event_topics" {
   type = map(list(string))
   default = {
-    wallet    = ["TransactionInitiated", "TransactionCompleted"],
-    analytics = ["TransactionInitiated"]
+    fraud        = ["transaction-initiated"]
+    transaction  = ["transaction-initiated", "fraud-check-completed"]
+    notification = ["transaction-completed"]
+    analytics    = ["*"]
   }
 }

@@ -15,6 +15,26 @@ resource "aws_sqs_queue" "sqs_main" {
 
 }
 
+resource "aws_sqs_queue_policy" "allow_sns_send" {
+  for_each = aws_sqs_queue.sqs_main
+
+  queue_url = each.value.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = "*"
+      Action    = "sqs:SendMessage"
+      Resource  = each.value.arn
+      Condition = {
+        ArnEquals = {
+          "aws:SourceArn" = local.service_topic_arns[each.key]
+        }
+      }
+    }]
+  })
+}
+
 resource "aws_sqs_queue_redrive_allow_policy" "redrive_ddl_policy" {
   for_each = toset(var.queues)
 
@@ -30,29 +50,4 @@ resource "aws_sqs_queue" "ddl" {
   for_each = toset(var.queues)
 
   name = "${each.key}-ddl"
-}
-
-resource "aws_sqs_queue_policy" "allow_sns" {
-  for_each = { for queue in var.queues : queue => queue }
-
-  queue_url = aws_sqs_queue.sqs_main[each.key].id
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Effect = "Allow",
-        Principal = {
-          Service = "sns.amazonaws.com"
-        },
-        Action   = "sqs:SendMessage",
-        Resource = aws_sqs_queue.sqs_main[each.key].arn,
-        Condition = {
-          ArnEquals = {
-            "aws:SourceArn" = aws_sns_topic.sns_topics["transaction-event-topic"].arn
-          }
-        }
-      }
-    ]
-  })
 }

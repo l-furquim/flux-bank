@@ -22,10 +22,12 @@ public class UserDeviceRepositoryJpaImpl implements UserDeviceRepository {
     }
 
     @Override
-    public void createUserDevice(UserDevice device) {
+    public UserDevice createUserDevice(UserDevice device) {
         UserDeviceEntity deviceToBePersisted = mapper.toEntity(device);
 
-        repository.save(deviceToBePersisted);
+        UserDeviceEntity devicePersisted = repository.save(deviceToBePersisted);
+
+        return mapper.toDomain(devicePersisted);
     }
 
     @Override

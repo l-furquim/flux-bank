@@ -11,6 +11,7 @@ import com.fluxbank.user_service.domain.service.TokenService;
 import com.fluxbank.user_service.interfaces.dto.AuthUserRequest;
 import com.fluxbank.user_service.interfaces.dto.AuthUserResponse;
 import com.fluxbank.user_service.interfaces.dto.UserTokenData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class AuthUserService implements AuthUserUsecase {
 
@@ -54,11 +56,27 @@ public class AuthUserService implements AuthUserUsecase {
 
         String token = tokenService.generateToken(user);
 
-        // melhorar isso para caso o usuario esteja fazendo login em um device que nao foi o que criou a conta ele ja crie esse device novo
-        UserDevice userDevice = userDeviceRepository.findByUserId(user.getId())
+
+        List<UserDevice> userDevices = userDeviceRepository.findByUserId(user.getId());
+        log.info("User devices: {}", userDevices);
+
+        UserDevice userDevice = null;
+
+        List<UserDevice> userDevicesWithActualAgent = userDevices
                 .stream()
                 .filter(d -> d.getUserAgent().equals(userAgent))
-                .toList().get(0);
+                .toList();
+
+        if(userDevicesWithActualAgent.size() == 1) {
+            userDevice = userDevicesWithActualAgent.get(0);
+        } else {
+            UserDevice newDevice = UserDevice.builder()
+                    .userId(user.getId())
+                    .userAgent(userAgent)
+                    .build();
+
+            userDevice = userDeviceRepository.createUserDevice(newDevice);
+        }
 
         UserTokenData tokenData = UserTokenData.builder()
                         .userId(user.getId())

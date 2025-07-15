@@ -18,6 +18,9 @@ public class GatewayConfig {
     @Value("${gateway.routes.wallet-service}")
     private String walletRoute;
 
+    @Value("${gateway.routes.transaction-service}")
+    private String transactionRoute;
+
     public GatewayConfig(UserContextGatewayFilter userContextFilter) {
         this.userContextFilter = userContextFilter;
     }
@@ -40,7 +43,14 @@ public class GatewayConfig {
 
                         .filters(f -> f.filter(userContextFilter))
 
-                        .uri(userRoute  ))
+                        .uri(userRoute))
+
+                .route("transaction-service", r -> r
+                        .path("/api/v1/transactions/pix/send")
+
+                        .filters(f -> f.filter(userContextFilter))
+
+                        .uri(transactionRoute))
 
                 // Rotas públicas - sem filtro de autenticação
                 .route("user-service", r -> r

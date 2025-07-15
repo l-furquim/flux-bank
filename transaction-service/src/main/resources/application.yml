@@ -5,11 +5,7 @@ spring:
     name: transaction-service
   data:
     mongodb:
-      host: ${MONGO_HOST:localhost}
-      port: 27017
-      database: fluxbank
-      username: ${MONGO_USER:root}
-      password: ${MONGO_PASSWORD:root}
+      uri: mongodb://root:root@localhost:27017/fluxbank?authSource=admin
     redis:
       host: ${REDIS_HOST:localhost}
       port: 6379
@@ -55,5 +51,8 @@ aws:
   sqs:
     fraud-check-completed: aaaaa
   sns:
-    transaction-initiated-topic: aaaa
-    transaction-completed-topic: aaaa
+    transaction-initiated-topic: 
+    fraud-topic: aaaa
+    notification-topic: aaaa
+    analytic-topic: aaaa
+

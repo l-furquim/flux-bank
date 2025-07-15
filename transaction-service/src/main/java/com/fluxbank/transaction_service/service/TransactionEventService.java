@@ -9,6 +9,7 @@ import com.fluxbank.transaction_service.repository.TransactionEventRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.Instant;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -24,10 +25,12 @@ public class TransactionEventService {
 
     public void createTransactionEvent(Transaction transaction) {
         TransactionEvent event = TransactionEvent.builder()
+                .id(UUID.randomUUID())
                 .transactionId(transaction.getId())
                 .currency(transaction.getCurrency().toString())
                 .sourceService("transactionService")
                 .processingDurationMs(null)
+                .type(transaction.getTransactionType().toString())
                 .status(TransactionStatus.INITIATED.toString())
                 .amount(transaction.getAmount())
                 .transactionType(TransactionType.PIX.toString())

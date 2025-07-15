@@ -27,7 +27,7 @@ public class TransactionService {
     }
 
     public SendPixResponse sendPix(SendPixRequest request){
-        if(request.amount().compareTo(BigDecimal.ZERO) >= 0) {
+        if(request.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionException("Invalid amount for the transaction.");
         }
 

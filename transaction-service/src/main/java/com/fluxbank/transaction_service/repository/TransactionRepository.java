@@ -14,12 +14,12 @@ import java.util.UUID;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    List<Transaction> findByStatus(TransactionStatus status);
-    List<Transaction> findByUserId(Long userId);
-    List<Transaction> findByOriginBill(String originBill);
-    List<Transaction> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
-    List<Transaction> findByUserIdAndStatus(Long userId, TransactionStatus status);
-
-    @Query("SELECT t FROM Transaction t WHERE t.type = :transactionType")
-    List<Transaction> findByTransactionType(@Param("transactionType") Class<? extends Transaction> transactionType);
+//    List<Transaction> findByStatus(TransactionStatus status);
+//    List<Transaction> findByUserId(Long userId);
+//    List<Transaction> findByOriginBill(String originBill);
+//    List<Transaction> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+//    List<Transaction> findByUserIdAndStatus(Long userId, TransactionStatus status);
+//
+//    @Query("SELECT t FROM Transaction t WHERE t.type = :transactionType")
+//    List<Transaction> findByTransactionType(@Param("transactionType") Class<? extends Transaction> transactionType);
 }

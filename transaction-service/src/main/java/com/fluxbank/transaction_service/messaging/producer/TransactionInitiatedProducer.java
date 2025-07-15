@@ -15,7 +15,7 @@ public class TransactionInitiatedProducer {
     private final AmazonSNS sns;
     private final ObjectMapper mapper;
 
-    @Value("${aws.sqs.transaction-initiated-topic}")
+    @Value("${aws.sns.transaction-initiated-topic}")
     private String topicArn;
 
     public TransactionInitiatedProducer(AmazonSNS sns, ObjectMapper mapper) {

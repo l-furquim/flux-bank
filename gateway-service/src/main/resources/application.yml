@@ -32,3 +32,4 @@ gateway:
   routes:
     wallet-service: ${WALLET_SERVICE_URI:http://localhost:8081}
     user-service: ${USER_SERVICE_URI:http://localhost:8082}
+    transaction-service: ${TRANSACTION_SERVICE_URI:http://localhost:8083}
