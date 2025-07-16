@@ -1,10 +1,28 @@
 package com.fluxbank.transaction_service.client;
 
+import com.fluxbank.transaction_service.controller.dto.DepositInWalletRequest;
+import com.fluxbank.transaction_service.controller.dto.DepositInWalletResponse;
+import com.fluxbank.transaction_service.controller.dto.WithDrawRequest;
+import com.fluxbank.transaction_service.controller.dto.WithDrawResponse;
+import jakarta.validation.Valid;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(name = "walletClient", url = "${feign-client.wallet-uri}")
 public interface IWalletClient {
 
+    @PostMapping("/deposit")
+    public ResponseEntity<DepositInWalletResponse> deposit(
+            @RequestBody DepositInWalletRequest request
+    );
 
+    @PostMapping("/withdraw")
+    public ResponseEntity<WithDrawResponse> withdraw(
+            @Valid @RequestBody WithDrawRequest request,
+            @RequestHeader("X-User-Id") String userId
+    );
 
 }

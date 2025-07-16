@@ -66,7 +66,7 @@ aws:
   sns:
     transaction-initiated-topic:
 feign-client:
-  wallet-uri: ${WALLET_SERVICE_URI:http://localhost:8081}
+  wallet-uri: ${WALLET_SERVICE_URI:http://localhost:8081/api/v1/wallets}
   user-uri: ${USER_SERVICE_URI:http://localhost:8082/api/v1/users}
 
 
