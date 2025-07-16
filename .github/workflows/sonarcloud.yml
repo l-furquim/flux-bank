@@ -24,17 +24,38 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
 
-      - name: Build projeto
+      - name: Build fraud-service
+        working-directory: fraud-service
         run: mvn clean install -DskipTests
-    
+
+      - name: Build user-service
+        working-directory: user-service
+        run: mvn clean install -DskipTests
+
+      - name: Build transaction-service
+        working-directory: transaction-service
+        run: mvn clean install -DskipTests
+
+      - name: Build wallet-service
+        working-directory: wallet-service
+        run: mvn clean install -DskipTests
+
+      - name: Build gateway-service
+        working-directory: gateway-service
+        run: mvn clean install -DskipTests
+
       - name: Analyze with SonarCloud
-      
-        uses: SonarSource/sonarcloud-github-action@4006f663ecaf1f8093e8e4abb9227f6041f52216
+        uses: SonarSource/sonarcloud-github-action@v2.2.0
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          args:
+          args: >
             -Dsonar.projectKey=l-furquim_flux-bank
             -Dsonar.organization=l-furquim
             -Dsonar.sources=fraud-service,user-service,transaction-service,wallet-service,gateway-service
-
+            -Dsonar.java.binaries=\
+              fraud-service/target/classes,\
+              user-service/target/classes,\
+              transaction-service/target/classes,\
+              wallet-service/target/classes,\
+              gateway-service/target/classes
