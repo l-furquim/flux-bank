@@ -17,6 +17,15 @@ jobs:
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+
+      - name: Build projeto
+        run: mvn clean install -DskipTests
     
       - name: Analyze with SonarCloud
       
