@@ -53,9 +53,4 @@ jobs:
             -Dsonar.projectKey=l-furquim_flux-bank
             -Dsonar.organization=l-furquim
             -Dsonar.sources=fraud-service,user-service,transaction-service,wallet-service,gateway-service
-            -Dsonar.java.binaries=\
-              fraud-service/target/classes,\
-              user-service/target/classes,\
-              transaction-service/target/classes,\
-              wallet-service/target/classes,\
-              gateway-service/target/classes
+            -Dsonar.java.binaries=fraud-service/target/classes,user-service/target/classes,transaction-service/target/classes,wallet-service/target/classes,gateway-service/target/classes
