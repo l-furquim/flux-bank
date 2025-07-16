@@ -4,7 +4,7 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fluxbank.transaction_service.event.TransactionEvent;
+import com.fluxbank.transaction_service.model.events.TransactionEvent;
 import com.fluxbank.transaction_service.model.exceptions.TransactionEventSerializerException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

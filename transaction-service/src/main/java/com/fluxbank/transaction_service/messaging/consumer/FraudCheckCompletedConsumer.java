@@ -2,7 +2,7 @@ package com.fluxbank.transaction_service.messaging.consumer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fluxbank.transaction_service.event.FraudCheckResponseEvent;
+import com.fluxbank.transaction_service.model.events.FraudCheckResponseEvent;
 import com.fluxbank.transaction_service.service.TransactionService;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.extern.slf4j.Slf4j;

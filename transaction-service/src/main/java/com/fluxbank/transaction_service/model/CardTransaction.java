@@ -13,6 +13,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 
 @Getter
@@ -24,8 +25,8 @@ public class CardTransaction extends Transaction {
     public CardTransaction() {
     }
 
-    public CardTransaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, String originBill, String destineBill, String lastFourDigits, String flag, String authCode, int installments, CardType cardType) {
-        super(currency, description, status, amount, originBill, destineBill);
+    public CardTransaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, UUID payerId, UUID payeeId, String lastFourDigits, String flag, String authCode, int installments, CardType cardType) {
+        super(currency, description, status, amount, payerId, payeeId);
         this.lastFourDigits = lastFourDigits;
         this.flag = flag;
         this.authCode = authCode;

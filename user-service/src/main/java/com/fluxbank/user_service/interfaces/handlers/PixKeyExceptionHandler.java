@@ -2,6 +2,7 @@ package com.fluxbank.user_service.interfaces.handlers;
 
 import com.fluxbank.user_service.domain.exceptions.DuplicatedKeyException;
 import com.fluxbank.user_service.domain.exceptions.InvalidPixKeyCreationException;
+import com.fluxbank.user_service.domain.exceptions.KeyNotFoundException;
 import com.fluxbank.user_service.interfaces.handlers.generic.ExceptionHandlerResponse;
 import com.fluxbank.user_service.interfaces.handlers.generic.GenericExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,6 +31,14 @@ public class PixKeyExceptionHandler extends GenericExceptionHandler {
     ) {
 
         return this.buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
+    }
+
+    @ExceptionHandler(KeyNotFoundException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleKeyNotFound(
+            KeyNotFoundException ex, HttpServletRequest request
+    ) {
+
+        return this.buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
     }
 
 }

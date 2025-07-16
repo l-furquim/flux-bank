@@ -1,6 +1,6 @@
 package com.fluxbank.transaction_service.service;
 
-import com.fluxbank.transaction_service.event.TransactionEvent;
+import com.fluxbank.transaction_service.model.events.TransactionEvent;
 import com.fluxbank.transaction_service.messaging.producer.TransactionInitiatedProducer;
 import com.fluxbank.transaction_service.model.Transaction;
 import com.fluxbank.transaction_service.model.enums.TransactionStatus;

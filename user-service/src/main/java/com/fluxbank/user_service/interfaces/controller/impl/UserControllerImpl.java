@@ -23,14 +23,16 @@ public class UserControllerImpl implements UserController {
     private final ChangeProfileUsecase changeProfileUsecase;
     private final CreatePixKeyUsecase createPixUsecase;
     private final GetUserPixKeysUsecase getPixKeysUsecase;
+    private final ResolvePixKeyUsecase resolvePixKeyUsecase;
 
-    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase, CreatePixKeyUsecase createPixUsecase, GetUserPixKeysUsecase getPixKeysUsecase) {
+    public UserControllerImpl(RegisterUserUsecase registerUsecase, AuthUserUsecase authUsecase, GetProfileUsecase getProfileUsecase, ChangeProfileUsecase changeProfileUsecase, CreatePixKeyUsecase createPixUsecase, GetUserPixKeysUsecase getPixKeysUsecase, ResolvePixKeyUsecase resolvePixKeyUsecase) {
         this.registerUsecase = registerUsecase;
         this.authUsecase = authUsecase;
         this.getProfileUsecase = getProfileUsecase;
         this.changeProfileUsecase = changeProfileUsecase;
         this.createPixUsecase = createPixUsecase;
         this.getPixKeysUsecase = getPixKeysUsecase;
+        this.resolvePixKeyUsecase = resolvePixKeyUsecase;
     }
 
     @PostMapping("/register")
@@ -99,6 +101,15 @@ public class UserControllerImpl implements UserController {
         GetUserPixKeysResponse response = getPixKeysUsecase.get(userId);
 
         return ResponseEntity.status(200).body(response);
+    }
+
+    @GetMapping("/pix-keys/{keyValue}")
+    public ResponseEntity<ResolvePixKeyResponse> resolvePixKey(
+            @PathVariable("keyValue") String keyValue
+    ) {
+        ResolvePixKeyResponse response = resolvePixKeyUsecase.resolve(keyValue);
+
+        return ResponseEntity.ok().body(response);
     }
 
 }

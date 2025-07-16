@@ -21,8 +21,8 @@ public class PixTransaction extends Transaction {
     public PixTransaction() {
     }
 
-    public PixTransaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, String originBill, String destineBill, String key) {
-        super(currency, description, status, amount, originBill, destineBill);
+    public PixTransaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, UUID payerId, UUID payeeId, String key) {
+        super(currency, description, status, amount, payerId, payeeId);
         this.key = key;
     }
 

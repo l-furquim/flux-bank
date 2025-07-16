@@ -24,14 +24,14 @@ public abstract class Transaction {
     public Transaction() {
     }
 
-    public Transaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, String originBill, String destineBill) {
+    public Transaction(Currency currency, String description, TransactionStatus status, BigDecimal amount, UUID payerId, UUID payeeId) {
         this.id = UUID.randomUUID();
         this.currency = currency;
         this.description = description;
         this.status = status;
         this.amount = amount;
-        this.originBill = originBill;
-        this.destineBill = destineBill;
+        this.payerId = payerId;
+        this.payeeId = payeeId;
     }
 
     @Id
@@ -50,10 +50,10 @@ public abstract class Transaction {
     private BigDecimal amount;
 
     @NotNull
-    private String originBill;
+    private UUID payerId;
 
     @NotNull
-    private String destineBill;
+    private UUID payeeId;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

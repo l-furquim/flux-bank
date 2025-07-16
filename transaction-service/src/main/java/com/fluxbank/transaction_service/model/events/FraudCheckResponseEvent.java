@@ -1,4 +1,4 @@
-package com.fluxbank.transaction_service.event;
+package com.fluxbank.transaction_service.model.events;
 
 
 import lombok.AllArgsConstructor;

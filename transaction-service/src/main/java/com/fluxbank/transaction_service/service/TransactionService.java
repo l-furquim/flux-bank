@@ -2,7 +2,7 @@ package com.fluxbank.transaction_service.service;
 
 import com.fluxbank.transaction_service.controller.dto.SendPixRequest;
 import com.fluxbank.transaction_service.controller.dto.SendPixResponse;
-import com.fluxbank.transaction_service.event.FraudCheckResponseEvent;
+import com.fluxbank.transaction_service.model.events.FraudCheckResponseEvent;
 import com.fluxbank.transaction_service.model.PixTransaction;
 import com.fluxbank.transaction_service.model.Transaction;
 import com.fluxbank.transaction_service.model.enums.TransactionStatus;
@@ -22,16 +22,20 @@ public class TransactionService {
 
     private final TransactionEventService eventService;
     private final TransactionRepository repository;
+    private final UserClientService userClientService;
 
-    public TransactionService(TransactionEventService eventService, TransactionRepository repository) {
+    public TransactionService(TransactionEventService eventService, TransactionRepository repository, UserClientService userClientService) {
         this.eventService = eventService;
         this.repository = repository;
+        this.userClientService = userClientService;
     }
 
-    public SendPixResponse sendPix(SendPixRequest request){
+    public SendPixResponse sendPix(SendPixRequest request, String userId){
         if(request.amount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidTransactionException("Invalid amount for the transaction.");
         }
+
+        UUID payeeResolvedId = userClientService.resolvePixKey(request.destineKey());
 
         LocalDateTime issuedAt = LocalDateTime.now();
 
@@ -40,8 +44,8 @@ public class TransactionService {
                 request.description(),
                 TransactionStatus.INITIATED,
                 request.amount(),
-                UUID.randomUUID().toString(), // nao implementado ainda
-                UUID.randomUUID().toString(), // nao implementado ainda
+                UUID.fromString(userId),
+                payeeResolvedId,
                 request.destineKey()
         );
 

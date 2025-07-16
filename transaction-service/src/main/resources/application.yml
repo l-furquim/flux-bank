@@ -47,9 +47,27 @@ management:
             requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
     tags:
       application: transaction-service
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowType: TIME_BASED
+        slidingWindowSize: 30
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+    instances:
+      userService:
+        baseConfig: default
+
 aws:
   sns:
     transaction-initiated-topic:
 feign-client:
   wallet-uri: ${WALLET_SERVICE_URI:http://localhost:8081}
+  user-uri: ${USER_SERVICE_URI:http://localhost:8082/api/v1/users}
+
+
 

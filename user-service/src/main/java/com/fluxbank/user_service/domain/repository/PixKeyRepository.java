@@ -13,5 +13,6 @@ public interface PixKeyRepository {
     void updatePixKey(PixKey pixKey);
     void deletePixKey(UUID pixKeyId);
     PixKey findCpfKeyByUser(User user);
+    PixKey findByValue(String value);
 
 }

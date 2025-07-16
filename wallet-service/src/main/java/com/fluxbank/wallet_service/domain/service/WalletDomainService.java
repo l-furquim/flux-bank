@@ -118,7 +118,7 @@ public class WalletDomainService implements WalletPort {
                         wallet.getCurrency().toString(),
                         processedMs,
                         Instant.now(),
-                        "walletDomainService"
+                        "walletService"
                 )
         );
 

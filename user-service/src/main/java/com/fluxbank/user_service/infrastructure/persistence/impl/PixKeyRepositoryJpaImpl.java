@@ -62,4 +62,11 @@ public class PixKeyRepositoryJpaImpl implements PixKeyRepository {
 
         return key.map(mapper::toDomain).orElse(null);
     }
+
+    @Override
+    public PixKey findByValue(String value) {
+        Optional<PixKeyEntity> key = repository.findByValue(value);
+
+        return key.map(mapper::toDomain).orElse(null);
+    }
 }

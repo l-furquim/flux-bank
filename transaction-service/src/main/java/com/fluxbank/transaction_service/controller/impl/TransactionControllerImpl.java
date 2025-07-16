@@ -22,7 +22,7 @@ public class TransactionControllerImpl {
             @Valid @RequestBody SendPixRequest request,
             @RequestHeader("X-User-Id") String userId
     ){
-        SendPixResponse response = transactionService.sendPix(request);
+        SendPixResponse response = transactionService.sendPix(request, userId);
 
         return ResponseEntity.accepted().body(response);
     }

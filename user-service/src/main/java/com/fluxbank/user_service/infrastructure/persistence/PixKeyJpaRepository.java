@@ -22,4 +22,7 @@ public interface PixKeyJpaRepository extends JpaRepository<PixKeyEntity, UUID> {
     @Query("SELECT p FROM PixKeyEntity p WHERE p.ownerId = :userId AND p.type = 'CPF'")
     Optional<PixKeyEntity> findCpfKeyByUserId(@Param("userId") UUID userId);
 
+    @Query("SELECT p FROM PixKeyEntity p WHERE p.value = :value")
+    Optional<PixKeyEntity> findByValue(@Param("value") String value);
+
 }
