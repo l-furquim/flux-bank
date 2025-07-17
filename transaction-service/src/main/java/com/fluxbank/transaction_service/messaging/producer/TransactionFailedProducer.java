@@ -10,25 +10,25 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TransactionInitiatedProducer extends Producer {
+public class TransactionFailedProducer extends Producer{
 
-    @Value("${aws.sns.transaction-initiated-topic}")
+    @Value("${aws.sns.transaction-failed-topic}")
     private String topicArn;
 
-    public TransactionInitiatedProducer(AmazonSNS sns, ObjectMapper mapper) {
+    public TransactionFailedProducer(AmazonSNS sns, ObjectMapper mapper) {
         super(sns, mapper);
     }
 
     @Override
     public void publish(TransactionEvent event) {
         try {
-            String message = super.mapper.writeValueAsString(event);
+            String message = mapper.writeValueAsString(event);
 
             PublishRequest request = new PublishRequest()
                     .withTopicArn(topicArn)
                     .withMessage(message);
 
-            super.sns.publish(request);
+            sns.publish(request);
         } catch (JsonProcessingException e) {
             throw new TransactionEventSerializerException("Error while serializing the message data: " + e.getMessage());
         }

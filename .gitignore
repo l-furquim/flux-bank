@@ -2,3 +2,8 @@
 .terraform.lock.hcl
 .terraform/
 terraform.tfstate*
+mvnw
+mvnw.cmd
+.gitattributes
+.gitignore
+.mvn

@@ -23,7 +23,8 @@ variable "topics" {
   default = [
     "transaction-initiated",
     "fraud-check-completed",
-    "transaction-completed"
+    "transaction-completed",
+    "transaction-failed"
   ]
 }
 
@@ -33,7 +34,7 @@ variable "event_topics" {
   default = {
     fraud        = ["transaction-initiated"]
     transaction  = ["fraud-check-completed"]
-    notification = ["transaction-completed"]
+    notification = ["transaction-completed", "transaction-failed"]
     analytics    = ["*"]
   }
 }

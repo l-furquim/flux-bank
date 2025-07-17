@@ -7,16 +7,15 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class FraudCheckResponseEvent {
 
-    private UUID id;
+    private String id;
     private String type;
-    private UUID transactionId;
+    private String transactionId;
     private String transactionType;
     private String status;
     private BigDecimal amount;

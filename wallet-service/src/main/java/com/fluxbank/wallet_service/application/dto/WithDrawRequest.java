@@ -1,5 +1,6 @@
 package com.fluxbank.wallet_service.application.dto;
 
+import com.fluxbank.wallet_service.domain.enums.Currency;
 import com.fluxbank.wallet_service.domain.enums.TransactionType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -12,7 +13,7 @@ public record WithDrawRequest(
 
         @Schema(description = "Id da carteira referente")
         @NotBlank
-        String walletId,
+        String userId,
 
         @Schema(description = "Quantidade a ser sacada")
         @NotNull
@@ -28,7 +29,10 @@ public record WithDrawRequest(
 
         @Schema(description = "Metadata do provedor")
         @NotNull
-        String metadata
+        String metadata,
 
-) {
+        @Schema(description = "Moeda referente a transação")
+        @NotNull Currency currency
+
+        ) {
 }

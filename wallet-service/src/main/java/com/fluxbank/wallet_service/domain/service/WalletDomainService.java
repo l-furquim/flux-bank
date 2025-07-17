@@ -79,13 +79,13 @@ public class WalletDomainService implements WalletPort {
     // @CacheEvict()
     @Override
     public TransactionResult deposit(DepositInWalletRequest data){
-        UUID walletId = UUID.fromString(data.walletId());
+        UUID userId = UUID.fromString(data.userId());
 
-        Wallet wallet = findWalletById(walletId);
-
-        if(wallet == null) {
-            throw new WalletNotFoundException();
-        }
+        Wallet wallet = this.adapter.findWalletsByUserId(userId)
+                .stream()
+                .filter(w -> w.getCurrency().equals(data.currency()))
+                .findFirst()
+                .orElseThrow(WalletNotFoundException::new);
 
         UUID transactionId = UUID.fromString(data.transactionId());
 
@@ -136,7 +136,7 @@ public class WalletDomainService implements WalletPort {
     public GetWalletBalanceResponse balance(GetWalletBalanceRequest request, UUID userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
-        Wallet wallet = findWalletById(walletId);
+        Wallet wallet = this.adapter.findWalletById(walletId);
 
         if (wallet == null) {
             throw new WalletNotFoundException();
@@ -156,13 +156,13 @@ public class WalletDomainService implements WalletPort {
 
     @Override
     public TransactionResult withDraw(WithDrawRequest request, String userId) {
-        UUID walletId = UUID.fromString(request.walletId());
+        UUID userIdFormated = UUID.fromString(request.userId());
 
-        Wallet wallet = this.findWalletById(walletId);
-
-        if(wallet == null) {
-            throw new WalletNotFoundException();
-        }
+        Wallet wallet = this.adapter.findWalletsByUserId(userIdFormated)
+                .stream()
+                .filter(w -> w.getCurrency().equals(request.currency()))
+                .findFirst()
+                .orElseThrow(WalletNotFoundException::new);
 
         UUID userIdConverted = UUID.fromString(userId);
 
@@ -218,16 +218,16 @@ public class WalletDomainService implements WalletPort {
         );
     }
 
-    @Cacheable(
-            value = "walletLimitsCache",
-            key = "#request.walletId() + ':' + #userId",
-            unless = "#result == null"
-    )
+//    @Cacheable(
+//            value = "walletLimitsCache",
+//            key = "#request.walletId() + ':' + #userId",
+//            unless = "#result == null"
+//    )
     @Override
     public GetWalletLimitsResponse getLimits(GetWalletLimitsRequest request, UUID userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
-        Wallet wallet = this.findWalletById(walletId);
+        Wallet wallet = this.adapter.findWalletById(walletId);
 
         if(wallet == null) {
             throw new WalletNotFoundException();
@@ -253,14 +253,11 @@ public class WalletDomainService implements WalletPort {
     }
 
 
-    @Cacheable(
-            value = "walletCache",
-            key = "#walletId",
-            unless = "#result == null"
-    )
-    private Wallet findWalletById(UUID walletId) {
-        return this.adapter.findWalletById(walletId);
-    }
+//    @Cacheable(
+//            value = "walletCache",
+//            key = "#walletId",
+//            unless = "#result == null"
+//    )
 
     private void validateWalletUsage(Wallet wallet, UUID userId){
         if(!wallet.getUserId().equals(userId)) {

@@ -57,6 +57,11 @@ public interface IWalletController {
                     responseCode = "404",
                     description = "Carteira de destinação não encontrada",
                     content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
             )
     })
     public ResponseEntity<DepositInWalletResponse> deposit(

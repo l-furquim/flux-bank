@@ -12,21 +12,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class TransactionExceptionHandler extends GenericExceptionHandler {
 
-    @ExceptionHandler(PixKeyNotFoundException.class)
-    public ResponseEntity<ExceptionHandlerResponse> handlePixKeyNotFoundException(
-            PixKeyNotFoundException ex, HttpServletRequest request
-    ) {
-
-        return this.buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());
-    }
-
-    @ExceptionHandler(ResolvePixKeyException.class)
-    public ResponseEntity<ExceptionHandlerResponse> handleResolvePixKeyException(
-            ResolvePixKeyException ex, HttpServletRequest request
-    ) {
-
-        return this.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
-    }
 
     @ExceptionHandler(InvalidTransactionException.class)
     public ResponseEntity<ExceptionHandlerResponse> handleInvalidTransaction(
@@ -44,13 +29,6 @@ public class TransactionExceptionHandler extends GenericExceptionHandler {
         return this.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
     }
 
-    @ExceptionHandler(UserClientUnavailableException.class)
-    public ResponseEntity<ExceptionHandlerResponse> handleSerializer(
-            UserClientUnavailableException ex, HttpServletRequest request
-    ) {
-
-        return this.buildErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request.getRequestURI());
-    }
 
 
 }

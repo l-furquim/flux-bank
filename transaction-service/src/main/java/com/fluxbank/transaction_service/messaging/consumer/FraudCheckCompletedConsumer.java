@@ -33,10 +33,12 @@ public class FraudCheckCompletedConsumer {
 
             log.info("Fraud check event received: {}", event);
 
+            log.info("Fraud DTO class: {}", (Object) FraudCheckResponseEvent.class.getDeclaredFields());
+
             transactionService.continueTransactionProcessing(event);
 
         } catch (Exception e) {
-            log.error("Error while consuming the fraud.check.complted message: {}", e.getMessage());
+            log.error("Error while consuming the fraud.check.completed message", e);
 
         }
     }
