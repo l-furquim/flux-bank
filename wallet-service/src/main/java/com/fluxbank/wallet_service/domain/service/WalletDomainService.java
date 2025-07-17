@@ -8,21 +8,16 @@ import com.fluxbank.wallet_service.domain.enums.Currency;
 import com.fluxbank.wallet_service.domain.enums.TransactionStatus;
 import com.fluxbank.wallet_service.domain.enums.WalletStatus;
 import com.fluxbank.wallet_service.domain.exception.wallet.*;
+import com.fluxbank.wallet_service.domain.exception.wallettransaction.InvalidWalletRefundException;
+import com.fluxbank.wallet_service.domain.exception.wallettransaction.WalletTransactionNotFoundException;
 import com.fluxbank.wallet_service.domain.models.Wallet;
 import com.fluxbank.wallet_service.domain.models.WalletLimit;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
-import com.fluxbank.wallet_service.infrastructure.service.WalletEventService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,13 +28,11 @@ public class WalletDomainService implements WalletPort {
 
     private final WalletPersistenceAdapter adapter;
     private final WalletTransactionPort walletTransactionService;
-    private final WalletEventService eventService;
     private final WalletLimitPort walletLimitService;
 
-    public WalletDomainService(WalletPersistenceAdapter adapter, WalletTransactionPort walletTransactionService, WalletEventService eventService, WalletLimitPort walletLimitService) {
+    public WalletDomainService(WalletPersistenceAdapter adapter, WalletTransactionPort walletTransactionService, WalletLimitPort walletLimitService) {
         this.adapter = adapter;
         this.walletTransactionService = walletTransactionService;
-        this.eventService = eventService;
         this.walletLimitService = walletLimitService;
     }
 
@@ -103,25 +96,6 @@ public class WalletDomainService implements WalletPort {
 
         adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
 
-        long processedMs = Duration.between(
-                walletTransaction.getCreatedAt(),
-                LocalDateTime.now()
-        ).toMillis();
-
-        eventService.sendTransactionConfirmation(
-                new WalletUpdatedEventDto(
-                        walletTransaction.getTransactionId(),
-                        wallet.getUserId().toString(),
-                        walletTransaction.getTransactionType().toString(),
-                        walletTransaction.getStatus().toString(),
-                        data.amount(),
-                        wallet.getCurrency().toString(),
-                        processedMs,
-                        Instant.now(),
-                        "walletService"
-                )
-        );
-
         return new TransactionResult(
                 transactionId,
                 data.type(),
@@ -174,6 +148,8 @@ public class WalletDomainService implements WalletPort {
             throw new InsufficientBalanceException();
         }
 
+        walletLimitService.updateWalletLimit(new UpdateWalletLimitRequest(wallet, request.amount(), request.type()));
+
         WalletTransaction transaction = walletTransactionService.create(new CreateWalletTransactionDto(
                 wallet,
                 request.transactionId(),
@@ -184,30 +160,9 @@ public class WalletDomainService implements WalletPort {
                 Optional.of(TransactionStatus.COMPLETED)
         ));
 
-        walletLimitService.updateWalletLimit(new UpdateWalletLimitRequest(wallet, request.amount(), request.type()));
-
         wallet.withDraw(request.amount());
 
         adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
-
-        long processedMs = Duration.between(
-                transaction.getCreatedAt(),
-                LocalDateTime.now()
-        ).toMillis();
-
-        eventService.sendTransactionConfirmation(
-                new WalletUpdatedEventDto(
-                        transaction.getTransactionId(),
-                        wallet.getUserId().toString(),
-                        transaction.getTransactionType().toString(),
-                        transaction.getStatus().toString(),
-                        request.amount(),
-                        wallet.getCurrency().toString(),
-                        processedMs,
-                        Instant.now(),
-                        "walletDomainService"
-                )
-        );
 
         return new TransactionResult(
                 request.transactionId(),
@@ -250,6 +205,51 @@ public class WalletDomainService implements WalletPort {
                 }).toList();
 
         return new GetWalletLimitsResponse(infos);
+    }
+
+    @Override
+    public void refund(RefundWalletTransactionRequest request) {
+        UUID walletTransactionId = null;
+        UUID payeeId = null;
+
+        try {
+            walletTransactionId = UUID.fromString(request.walletTransactionId());
+            payeeId = UUID.fromString(request.payeeId());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidWalletRefundException("Invalid data for refunding the wallet.");
+        }
+
+        WalletTransaction transactionToBeRefund = this.walletTransactionService.findById(walletTransactionId);
+
+        if(transactionToBeRefund == null) {
+            throw new WalletTransactionNotFoundException("Could not found the transaction.");
+        }
+
+        Wallet payerWallet = this.adapter.findWalletById(transactionToBeRefund.getWallet().getId());
+
+        Wallet payeeWallet = this.adapter.findWalletsByUserId(payeeId)
+                        .stream()
+                        .filter(w -> w.getCurrency().equals(transactionToBeRefund.getWallet().getCurrency()))
+                        .findFirst()
+                        .orElseThrow(WalletNotFoundException::new);
+
+        payeeWallet.withDraw(transactionToBeRefund.getAmount());
+        payerWallet.deposit(transactionToBeRefund.getAmount());
+
+        walletLimitService.rollbackWalletLimit(
+                payerWallet,
+                transactionToBeRefund
+        );
+
+        walletTransactionService.createRefundTransaction(
+                transactionToBeRefund,
+                payeeWallet
+        );
+
+        adapter.updateWallet(payerWallet);
+        adapter.updateWallet(payeeWallet);
+
+        log.info("Wallet: {} was refunded by the transaction: {}", payerWallet.getId(), transactionToBeRefund.getId());
     }
 
 

@@ -12,5 +12,7 @@ public interface WalletPort {
     GetWalletBalanceResponse balance(GetWalletBalanceRequest request, UUID userId);
     TransactionResult withDraw(WithDrawRequest request, String userId);
     GetWalletLimitsResponse getLimits(GetWalletLimitsRequest request, UUID userId);
+    void refund(RefundWalletTransactionRequest request);
+
 
 }

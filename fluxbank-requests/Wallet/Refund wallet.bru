@@ -1,0 +1,18 @@
+meta {
+  name: Refund wallet
+  type: http
+  seq: 6
+}
+
+put {
+  url: http://localhost:8080/api/v1/wallets/refund
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "walletTransactionId": "5d129201-4b77-4236-9f5a-0f65d2d7380c",
+    "payeeId": "521d1e3d-f6f0-4d86-9d12-e89bfb8b0b5b"
+  }
+}

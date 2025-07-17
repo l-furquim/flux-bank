@@ -23,6 +23,6 @@ public class PixKey {
 
     private LocalDateTime issuedAt;
 
-    private String value;
+    private String value\;
 
 }

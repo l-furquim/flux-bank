@@ -33,7 +33,7 @@ public class GatewayConfig {
                 .route("wallet-service", r -> r
                         .path("/api/v1/wallets/create", "/api/v1/wallets/deposit",
                                 "/api/v1/wallets/balance", "/api/v1/wallets/withdraw",
-                                "/api/v1/wallets/limits")
+                                "/api/v1/wallets/limits","/api/v1/wallets/refund")
                         .filters(f -> f.filter(userContextFilter))
 
                         .uri(walletRoute))

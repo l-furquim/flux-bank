@@ -72,5 +72,14 @@ public class WalletControllerImpl implements IWalletController {
         return ResponseEntity.ok().body(response);
     }
 
+    @PutMapping("/refund")
+    public ResponseEntity<Void> refund(
+        @Valid @RequestBody RefundWalletTransactionRequest request
+    ){
+        port.refund(request);
+
+        return ResponseEntity.noContent().build();
+    }
+
 
 }

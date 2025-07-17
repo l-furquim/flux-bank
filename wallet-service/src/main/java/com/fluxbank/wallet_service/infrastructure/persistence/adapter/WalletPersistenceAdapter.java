@@ -54,15 +54,19 @@ public class WalletPersistenceAdapter {
 
     @Transactional
     public void updateWallet(Wallet wallet) {
-        Optional<WalletEntity> existingWallet = repository.findById(wallet.getId());
 
-        if(existingWallet.isEmpty()) return;
+        WalletEntity existingWallet = WalletEntity.builder()
+                .id(wallet.getId())
+                .balance(wallet.getBalance())
+                .blockedAmount(wallet.getBlockedAmount())
+                .currency(wallet.getCurrency())
+                .walletStatus(wallet.getWalletStatus())
+                .userId(wallet.getUserId())
+                .createdAt(wallet.getCreatedAt())
+                .updatedAt(wallet.getUpdatedAt())
+                .build();
 
-        WalletEntity updatedWallet = mapper.toEntity(wallet);
-
-        updatedWallet.setId(wallet.getId());
-
-        repository.save(updatedWallet);
+        repository.save(existingWallet);
     }
 
     @Transactional

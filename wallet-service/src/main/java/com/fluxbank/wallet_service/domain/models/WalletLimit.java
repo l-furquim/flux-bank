@@ -50,5 +50,9 @@ public class WalletLimit {
         this.usedAmount = this.usedAmount.add(amount);
     }
 
+    public void addLimit(BigDecimal amount){
+        this.usedAmount = this.usedAmount.subtract(amount);
+    }
+
 
 }

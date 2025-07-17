@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -58,5 +59,10 @@ public class WalletTransactionPersistenceAdapter {
                 .toList();
     }
 
+    public WalletTransaction findById(UUID id) {
+        Optional<WalletTransactionEntity> transaction = repository.findById(id);
+
+        return transaction.map(mapper::toDomain).orElse(null);
+    }
 
 }

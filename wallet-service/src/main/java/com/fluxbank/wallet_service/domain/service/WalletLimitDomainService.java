@@ -115,6 +115,34 @@ public class WalletLimitDomainService implements WalletLimitPort {
         return adapter.findByWalletId(wallet.getId());
     }
 
+    @Override
+    public void rollbackWalletLimit(Wallet wallet, WalletTransaction transaction) {
+        List<WalletLimit> limits = adapter.findByWalletId(wallet.getId());
+
+        if (limits.isEmpty()) {
+            throw new WalletLimitNotFoundException();
+        }
+
+        List<WalletLimit> applicableLimits = limits.stream()
+                .filter(limit -> isApplicable(limit, transaction.getTransactionType()))
+                .peek(limit -> validateLimitDisposability(limit, transaction.getAmount()))
+                .toList();
+
+        for (WalletLimit limit : applicableLimits) {
+            if(!limit.getLimitType().equals(LimitType.SINGLE_TRANSACTION)) {
+                limit.addLimit(transaction.getAmount());
+
+
+                if (limit.isLimitExceeded()) {
+                    limit.setStatus(LimitStatus.EXCEEDED);
+                }
+
+                adapter.updateWalletLimit(limit.getId(),transaction.getAmount(), limit.getStatus());
+            }
+        }
+
+    }
+
     private List<TransactionType> getCorrectType(LimitType type) {
         return switch (type) {
             case DAILY_PIX, MONTHLY_PIX -> List.of(TransactionType.PIX);

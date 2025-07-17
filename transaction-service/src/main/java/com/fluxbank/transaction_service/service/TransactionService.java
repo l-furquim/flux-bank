@@ -16,10 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.UUID;
 
 @Slf4j
@@ -130,8 +127,6 @@ public class TransactionService {
         try{
             performWalletOperations(transaction);
 
-            transaction.setProcessedAt(LocalDateTime.now());
-
             updateStatusAndPublish(transaction, TransactionStatus.COMPLETED, completedProducer);
         } catch (Exception e) {
             updateStatusAndPublish(transaction, TransactionStatus.FAILED, failedProducer);
@@ -141,8 +136,12 @@ public class TransactionService {
 
     private void updateStatusAndPublish(Transaction transaction, TransactionStatus status, Producer producer) {
         transaction.setStatus(status);
+        transaction.setProcessedAt(LocalDateTime.now());
+
         TransactionEvent evt = eventService.createTransactionEvent(transaction);
+
         producer.publish(evt);
+
         repository.save(transaction);
     }
 
