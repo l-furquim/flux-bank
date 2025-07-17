@@ -248,7 +248,7 @@ class RegisterUserServiceTest {
                 () -> assertEquals(request.fullName(), capturedUser.getFullName()),
                 () -> assertEquals(request.email(), capturedUser.getEmail()),
                 () -> assertEquals(encryptedPassword, capturedUser.getPassword()),
-                () -> assertEquals(request.birthDate(), capturedUser.getBirthDate()),
+                () -> assertEquals(request.birthDate(), capturedUser.getBirthDate()) ,
                 () -> assertEquals(request.address(), capturedUser.getAddress())
         );
     }
