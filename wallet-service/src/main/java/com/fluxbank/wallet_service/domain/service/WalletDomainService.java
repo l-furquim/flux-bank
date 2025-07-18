@@ -15,6 +15,10 @@ import com.fluxbank.wallet_service.domain.models.WalletLimit;
 import com.fluxbank.wallet_service.domain.models.WalletTransaction;
 import com.fluxbank.wallet_service.infrastructure.persistence.adapter.WalletPersistenceAdapter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,12 +40,13 @@ public class WalletDomainService implements WalletPort {
         this.walletLimitService = walletLimitService;
     }
 
-    // @CachePut(value = "wallets", key = "#result.id")
+    @CachePut(value = "wallets", key = "#result.id")
+    @CacheEvict(value = "user-wallets", key = "#userId")
     @Override
     public Wallet createWallet(CreateWalletRequest dto, UUID userId){
         Currency currencyConverted = Currency.fromValue(dto.currency());
 
-        List<Wallet> userWallets = adapter.findWalletsByUserId(userId);
+        List<Wallet> userWallets = findWalletsByUserId(userId);
 
         boolean alreadyHaveCurrentCurrencyWallet = userWallets
                 .stream()
@@ -69,12 +74,17 @@ public class WalletDomainService implements WalletPort {
         return walletPersisted;
     }
 
-    // @CacheEvict()
+    @Caching(evict = {
+            @CacheEvict(value = "wallets", key = "#result.transactionId"),
+            @CacheEvict(value = "wallet-balance", key = "#data.userId + '_' + #data.currency().name()"),
+            @CacheEvict(value = "wallet-limits", key = "#data.userId + '_' + #data.currency().name()"),
+            @CacheEvict(value = "user-wallets", key = "#data.userId")
+    })
     @Override
     public TransactionResult deposit(DepositInWalletRequest data){
         UUID userId = UUID.fromString(data.userId());
 
-        Wallet wallet = this.adapter.findWalletsByUserId(userId)
+        Wallet wallet = this.findWalletsByUserId(userId)
                 .stream()
                 .filter(w -> w.getCurrency().equals(data.currency()))
                 .findFirst()
@@ -96,6 +106,8 @@ public class WalletDomainService implements WalletPort {
 
         adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
 
+        updateWalletCache(wallet);
+
         return new TransactionResult(
                 transactionId,
                 data.type(),
@@ -105,12 +117,16 @@ public class WalletDomainService implements WalletPort {
         );
     }
 
-    // @Cacheable(value = "wallet-deposit", key = "#request.walletId()" + "_" + "#userId")
+    @Cacheable(
+            value = "wallet-balance",
+            key = "#request.walletId() + '_' + #userId.toString()",
+            unless = "#result == null"
+    )
     @Override
     public GetWalletBalanceResponse balance(GetWalletBalanceRequest request, UUID userId) {
         UUID walletId = UUID.fromString(request.walletId());
 
-        Wallet wallet = this.adapter.findWalletById(walletId);
+        Wallet wallet = this.findWalletById(walletId);
 
         if (wallet == null) {
             throw new WalletNotFoundException();
@@ -128,11 +144,17 @@ public class WalletDomainService implements WalletPort {
         );
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "wallets", key = "#result.transactionId"),
+            @CacheEvict(value = "wallet-balance", key = "#request.userId + '_' + #request.currency().name()"),
+            @CacheEvict(value = "wallet-limits", key = "#request.userId + '_' + #request.currency().name()"),
+            @CacheEvict(value = "user-wallets", key = "#request.userId")
+    })
     @Override
     public TransactionResult withDraw(WithDrawRequest request, String userId) {
         UUID userIdFormated = UUID.fromString(request.userId());
 
-        Wallet wallet = this.adapter.findWalletsByUserId(userIdFormated)
+        Wallet wallet = this.findWalletsByUserId(userIdFormated)
                 .stream()
                 .filter(w -> w.getCurrency().equals(request.currency()))
                 .findFirst()
@@ -164,6 +186,8 @@ public class WalletDomainService implements WalletPort {
 
         adapter.updateWalletBalance(wallet.getBalance(), wallet.getId());
 
+        updateWalletCache(wallet);
+
         return new TransactionResult(
                 request.transactionId(),
                 request.type(),
@@ -173,11 +197,11 @@ public class WalletDomainService implements WalletPort {
         );
     }
 
-//    @Cacheable(
-//            value = "walletLimitsCache",
-//            key = "#request.walletId() + ':' + #userId",
-//            unless = "#result == null"
-//    )
+    @Cacheable(
+            value = "wallet-limits",
+            key = "#request.walletId() + '_' + #userId.toString()",
+            unless = "#result == null"
+    )
     @Override
     public GetWalletLimitsResponse getLimits(GetWalletLimitsRequest request, UUID userId) {
         UUID walletId = UUID.fromString(request.walletId());
@@ -207,6 +231,12 @@ public class WalletDomainService implements WalletPort {
         return new GetWalletLimitsResponse(infos);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "wallets", allEntries = true),
+            @CacheEvict(value = "wallet-balance", allEntries = true),
+            @CacheEvict(value = "wallet-limits", allEntries = true),
+            @CacheEvict(value = "user-wallets", allEntries = true)
+    })
     @Override
     public void refund(RefundWalletTransactionRequest request) {
         UUID walletTransactionId = null;
@@ -227,7 +257,7 @@ public class WalletDomainService implements WalletPort {
 
         Wallet payerWallet = this.adapter.findWalletById(transactionToBeRefund.getWallet().getId());
 
-        Wallet payeeWallet = this.adapter.findWalletsByUserId(payeeId)
+        Wallet payeeWallet = this.findWalletsByUserId(payeeId)
                         .stream()
                         .filter(w -> w.getCurrency().equals(transactionToBeRefund.getWallet().getCurrency()))
                         .findFirst()
@@ -249,15 +279,41 @@ public class WalletDomainService implements WalletPort {
         adapter.updateWallet(payerWallet);
         adapter.updateWallet(payeeWallet);
 
+        updateWalletCache(payerWallet);
+        updateWalletCache(payeeWallet);
+
         log.info("Wallet: {} was refunded by the transaction: {}", payerWallet.getId(), transactionToBeRefund.getId());
     }
 
+    @Cacheable(value = "wallets", key = "#walletId", unless = "#result == null")
+    public Wallet findWalletById(UUID walletId) {
+        return adapter.findWalletById(walletId);
+    }
 
-//    @Cacheable(
-//            value = "walletCache",
-//            key = "#walletId",
-//            unless = "#result == null"
-//    )
+    @Cacheable(value = "user-wallets", key = "#userId", unless = "#result == null or #result.isEmpty()")
+    public List<Wallet> findWalletsByUserId(UUID userId) {
+        return this.adapter.findWalletsByUserId(userId);
+    }
+
+    @CachePut(value = "wallets", key = "#wallet.id")
+    private Wallet updateWalletCache(Wallet wallet) {
+        return wallet;
+    }
+
+    @CacheEvict(value = {"wallets", "wallet-balance", "wallet-limits"}, key = "#walletId")
+    public void evictWalletCache(UUID walletId) {
+        log.debug("Cache invalidated for wallet: {}", walletId);
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "user-wallets", key = "#userId"),
+            @CacheEvict(value = "wallet-balance", allEntries = true),
+            @CacheEvict(value = "wallet-limits", allEntries = true)
+    })
+    public void evictUserWalletsCache(UUID userId) {
+        log.debug("All wallet caches invalidated for user: {}", userId);
+    }
+
 
     private void validateWalletUsage(Wallet wallet, UUID userId){
         if(!wallet.getUserId().equals(userId)) {
