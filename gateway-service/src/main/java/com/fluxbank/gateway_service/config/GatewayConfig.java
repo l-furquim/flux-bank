@@ -46,7 +46,7 @@ public class GatewayConfig {
                         .uri(userRoute))
 
                 .route("transaction-service", r -> r
-                        .path("/api/v1/transactions/pix/send")
+                        .path("/api/v1/transactions/pix/send", "/api/v1/transactions/history/**")
 
                         .filters(f -> f.filter(userContextFilter))
 

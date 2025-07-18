@@ -174,4 +174,36 @@ public interface IWalletController {
             @RequestHeader("X-User-Id") String userId
     );
 
+
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Reembolso realizado com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados invalidos para o reembolso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Wallets não encontradas para o reembolso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "WalletTransaction não encontrada",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<Void> refund(
+            @Valid @RequestBody RefundWalletTransactionRequest request
+    );
+
 }

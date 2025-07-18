@@ -29,6 +29,14 @@ public class TransactionExceptionHandler extends GenericExceptionHandler {
         return this.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
     }
 
+    @ExceptionHandler(InvalidTransactionHistoryPageException.class)
+    public ResponseEntity<ExceptionHandlerResponse> handleInvalidTransactionHistoryPage(
+            InvalidTransactionHistoryPageException ex, HttpServletRequest request
+    ) {
+
+        return this.buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());
+    }
+
 
 
 }

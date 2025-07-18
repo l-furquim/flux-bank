@@ -1,11 +1,9 @@
 package com.fluxbank.transaction_service.service;
 
 import com.fluxbank.transaction_service.client.IWalletClient;
-import com.fluxbank.transaction_service.controller.dto.DepositInWalletRequest;
-import com.fluxbank.transaction_service.controller.dto.DepositInWalletResponse;
-import com.fluxbank.transaction_service.controller.dto.WithDrawRequest;
-import com.fluxbank.transaction_service.controller.dto.WithDrawResponse;
+import com.fluxbank.transaction_service.controller.dto.*;
 import com.fluxbank.transaction_service.model.exceptions.InvalidDepositException;
+import com.fluxbank.transaction_service.model.exceptions.InvalidRefundException;
 import com.fluxbank.transaction_service.model.exceptions.InvalidWithDrawException;
 import com.fluxbank.transaction_service.model.exceptions.WalletClientUnavailableException;
 import feign.FeignException;
@@ -68,6 +66,28 @@ public class WalletClientService {
         if (throwable instanceof FeignException.BadRequest
                 || throwable instanceof FeignException.NotFound) {
             throw new InvalidDepositException(throwable.getMessage());
+        }
+
+        throw new WalletClientUnavailableException("Erro ao acessar serviço de carteira: " + throwable.getMessage());
+    }
+
+    @CircuitBreaker(name = "walletService", fallbackMethod = "fallbackRefundWallets")
+    public void refundWallets(RefundWalletTransactionRequest request) {
+        ResponseEntity<Void> response = walletClient.refund(request);
+
+        if (response == null) {
+            throw new RuntimeException("Aaa");
+        }
+
+
+    }
+
+    private void fallbackRefundWallets(RefundWalletTransactionRequest request, Throwable throwable) {
+        log.error("Exceção caiu no fallback for refund (wallet_transaction={}): {}", request.walletTransactionId(), throwable.getMessage());
+
+        if (throwable instanceof FeignException.BadRequest
+                || throwable instanceof FeignException.NotFound) {
+            throw new InvalidRefundException(throwable.getMessage());
         }
 
         throw new WalletClientUnavailableException("Erro ao acessar serviço de carteira: " + throwable.getMessage());

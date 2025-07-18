@@ -1,5 +1,6 @@
 package com.fluxbank.transaction_service.controller.impl;
 
+import com.fluxbank.transaction_service.controller.dto.GetTransactionHistoryResponse;
 import com.fluxbank.transaction_service.controller.dto.SendPixRequest;
 import com.fluxbank.transaction_service.controller.dto.SendPixResponse;
 import com.fluxbank.transaction_service.service.TransactionService;
@@ -25,6 +26,17 @@ public class TransactionControllerImpl {
         SendPixResponse response = transactionService.sendPix(request, userId);
 
         return ResponseEntity.accepted().body(response);
+    }
+
+    @GetMapping("/history/{start}/{end}")
+    public ResponseEntity<GetTransactionHistoryResponse> history(
+            @PathVariable("start") int start,
+            @PathVariable("end") int end,
+            @RequestHeader("X-User-Id") String userId
+    ) {
+        GetTransactionHistoryResponse response = transactionService.getUserTransactionHistory(userId, start,end);
+
+        return ResponseEntity.ok().body(response);
     }
 
 

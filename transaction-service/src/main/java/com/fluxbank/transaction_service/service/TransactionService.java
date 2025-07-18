@@ -5,18 +5,25 @@ import com.fluxbank.transaction_service.messaging.producer.Producer;
 import com.fluxbank.transaction_service.messaging.producer.TransactionCompletedProducer;
 import com.fluxbank.transaction_service.messaging.producer.TransactionFailedProducer;
 import com.fluxbank.transaction_service.messaging.producer.TransactionInitiatedProducer;
+import com.fluxbank.transaction_service.model.enums.TransactionDirection;
 import com.fluxbank.transaction_service.model.events.FraudCheckResponseEvent;
 import com.fluxbank.transaction_service.model.PixTransaction;
 import com.fluxbank.transaction_service.model.Transaction;
 import com.fluxbank.transaction_service.model.enums.TransactionStatus;
 import com.fluxbank.transaction_service.model.events.TransactionEvent;
 import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionException;
+import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionHistoryPageException;
 import com.fluxbank.transaction_service.repository.TransactionRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -88,7 +95,33 @@ public class TransactionService {
                 );
     }
 
-    private void performWalletOperations(Transaction transaction) {
+    public GetTransactionHistoryResponse getUserTransactionHistory(String userId, int start, int end) {
+        if(start < 0 || end < 0) {
+            throw new InvalidTransactionHistoryPageException();
+        }
+
+
+        UUID properlyUserId = UUID.fromString(userId);
+
+        Page<Transaction> transactions = repository
+                .findAllUserTransactions(properlyUserId, PageRequest.of(start,end, Sort.by("createdAt").descending()));
+
+
+
+        return new GetTransactionHistoryResponse(
+                transactions.map(t -> new TransactionInfoDto(
+                        t.getAmount(),
+                        t.getCurrency(),
+                        t.getStatus(),
+                        t.getPayeeId().equals(properlyUserId) ? TransactionDirection.RECEIVED : TransactionDirection.SENT,
+                        t.getDescription(),
+                        t.getTransactionType(),
+                        t.getProcessedAt()
+                )).toList()
+        );
+    }
+
+    private WalletOperationResult performWalletOperations(Transaction transaction) {
         WithDrawRequest withDrawrequest = new WithDrawRequest(
                 transaction.getPayerId().toString(),
                 transaction.getAmount(),
@@ -98,21 +131,31 @@ public class TransactionService {
                 transaction.getCurrency()
         );
 
+        WithDrawResponse withDrawResponse = null;
+        DepositInWalletResponse depositResponse = null;
 
-        DepositInWalletRequest depositRequest = new DepositInWalletRequest(
-                transaction.getId().toString(),
-                transaction.getAmount(),
-                transaction.getPayeeId().toString(),
-                transaction.getTransactionType().toString(),
-                "Metadados",
-                transaction.getDescription(),
-                transaction.getCurrency()
+        try {
+            withDrawResponse = walletClientService.withDrawWallet(withDrawrequest, transaction.getPayerId());
+
+            DepositInWalletRequest depositRequest = new DepositInWalletRequest(
+                    transaction.getId().toString(),
+                    transaction.getAmount(),
+                    transaction.getPayeeId().toString(),
+                    transaction.getTransactionType().toString(),
+                    "Metadados",
+                    transaction.getDescription(),
+                    transaction.getCurrency()
             );
 
-        walletClientService.withDrawWallet(withDrawrequest, transaction.getPayerId());
+            depositResponse = walletClientService.depositWallet(depositRequest);
 
-        walletClientService.depositWallet(depositRequest);
+            return new WalletOperationResult(withDrawResponse, depositResponse);
+
+        } catch (Exception e) {
+            return new WalletOperationResult(withDrawResponse, e.getMessage());
+        }
     }
+
 
 
     private boolean isFraudDetected(FraudCheckResponseEvent event) {
@@ -124,13 +167,32 @@ public class TransactionService {
     }
 
     private void handleSuccessfulFraud(Transaction transaction) {
-        try{
-            performWalletOperations(transaction);
+        WalletOperationResult result = performWalletOperations(transaction);
 
+        if (result.isSuccess()) {
             updateStatusAndPublish(transaction, TransactionStatus.COMPLETED, completedProducer);
-        } catch (Exception e) {
+        } else {
             updateStatusAndPublish(transaction, TransactionStatus.FAILED, failedProducer);
-            log.error("Error while requesting wallet service (transactionId={}): {}", transaction.getId(), e.getMessage());
+            if (result.getWalletTransactionId() != null) {
+                rollbackWithdraw(result.getWalletTransactionId(), transaction.getPayeeId().toString());
+            }
+
+            log.error("Error while requesting wallet service (transactionId={}): {}",
+                    transaction.getId(), result.getErrorMessage());
+        }
+    }
+
+    private void rollbackWithdraw(String walletTransactionId, String payeeId) {
+        try {
+            RefundWalletTransactionRequest refundRequest = new RefundWalletTransactionRequest(
+                walletTransactionId,
+                payeeId
+            );
+            walletClientService.refundWallets(refundRequest);
+            log.info("Refund processed for wallet_transaction {}", walletTransactionId);
+        } catch (Exception e) {
+            log.error("Failed to refund wallet_transaction {}: {}", walletTransactionId, e.getMessage());
+            // TODO: Implementar funcao de adicionar na DLQ
         }
     }
 

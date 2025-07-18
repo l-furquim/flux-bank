@@ -32,7 +32,7 @@ public class WalletTransactionDomainService implements WalletTransactionPort {
 
         BigDecimal balanceBefore = data.wallet().getBalance();
 
-        BigDecimal balanceAfter = balanceBefore.add(data.amount());
+        BigDecimal balanceAfter = balanceBefore.subtract(data.amount());
 
         WalletTransaction walletTransaction = WalletTransaction.builder()
                 .transactionType(data.transactionType())
