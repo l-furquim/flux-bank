@@ -12,15 +12,15 @@ RUN mvn clean package -DskipTests
 
 FROM amazoncorretto:17-alpine
 
-RUN adduser -S fraud -u 1001
+RUN adduser -S wallet -u 1001
 
 WORKDIR /app
 
-COPY --from=build --chown=fraud:fraud /app/target/*.jar fraud-service.jar
+COPY --from=build --chown=fraud:fraud /app/target/*.jar wallet-service.jar
 
-RUN chmod 444 fraud-service.jar
+RUN chmod 444 wallet-service.jar
 
 EXPOSE 8080
-USER fraud
+USER wallet
 
-ENTRYPOINT ["java", "-jar", "fraud-service.jar"]
+ENTRYPOINT ["java", "-jar", "wallet-service.jar"]

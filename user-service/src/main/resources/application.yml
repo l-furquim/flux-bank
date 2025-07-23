@@ -8,7 +8,7 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: 6379
   datasource:
-    url: jdbc:postgresql://${WALLET_POSTGRES_HOST:localhost}:5433/${POSTGRES_DB:fluxbank}
+    url: jdbc:postgresql://${USER_POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:fluxbank}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
@@ -17,6 +17,10 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     out-of-order: false
+    url: jdbc:postgresql://${USER_POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:fluxbank}
+    user: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:root}
+
   jpa:
     show-sql: false
     hibernate:

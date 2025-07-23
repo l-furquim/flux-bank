@@ -5,7 +5,7 @@ spring:
     name: notification-service
   data:
     mongodb:
-      uri: mongodb://root:root@localhost:27017/fluxbank?authSource=admin
+      uri: mongodb://root:root@${MONGO_HOST:localhost}:27017/fluxbank?authSource=admin
   mail:
     host: smtp.gmail.com
     port: 587

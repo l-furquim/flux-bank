@@ -8,3 +8,6 @@ mvnw.cmd
 .gitignore
 .mvn
 .env
+target
+prometheus_data
+*.zip

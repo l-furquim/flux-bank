@@ -5,12 +5,12 @@ import com.fluxbank.user_service.interfaces.dto.UserTokenData;
 import com.fluxbank.user_service.domain.service.CacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
 @Slf4j
-@Service
+@Component
 public class RedisCacheService implements CacheService {
 
     private static final String USER_SESSIONS_PREFIX = "user_sessions:";

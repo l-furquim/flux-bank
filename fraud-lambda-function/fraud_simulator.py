@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 def generate_fraud_event(transaction):
     """
-    Simula um evento de fraude baseado no objeto de transação fornecido.
+    Simula um evento de fraude baseado no evento de transação recebido.
 
     Args:
         transaction (dict): Um dicionário contendo os campos:
@@ -23,7 +23,7 @@ def generate_fraud_event(transaction):
             - sourceService (str)
 
     Returns:
-        dict: Estrutura JSON de um evento de fraude.
+        dict: JSON referente a o evento de fraude.
     """
     fraud_probability = 0.1
     is_fraud = random.random() < fraud_probability
@@ -43,10 +43,6 @@ def generate_fraud_event(transaction):
 
 
 def lambda_handler(event, context):
-    """
-    AWS Lambda handler que recebe um JSON com os dados de transação
-    no body da requisição e retorna um evento de fraude.
-    """
     payload = None
     if event.get('body'):
         try:

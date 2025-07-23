@@ -45,11 +45,7 @@ public class WalletPersistenceAdapter {
     public Wallet findWalletById(UUID walletId) {
         Optional<WalletEntity> walletEntity = repository.findById(walletId);
 
-        if(walletEntity.isEmpty()) return null;
-
-        Wallet wallet = mapper.toDomain(walletEntity.get());
-
-        return wallet;
+        return walletEntity.map(mapper::toDomain).orElse(null);
     }
 
     @Transactional
@@ -83,7 +79,7 @@ public class WalletPersistenceAdapter {
 
         log.debug("Wallets founded {}", walletsFounded);
 
-         return walletsFounded.stream().map(w -> mapper.toDomain(w)
+         return walletsFounded.stream().map(mapper::toDomain
          ).toList();
     }
 

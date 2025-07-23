@@ -17,8 +17,14 @@ services:
       POSTGRES_DB: fluxbank
     volumes:
       - fluxbank_wallet_postgres_data:/var/lib/postgresql/data
-    #networks:
-    # - fluxbank-database-network
+    networks:
+      - fluxbank-database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d fluxbank"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   user-postgres:
     image: postgres:latest
     container_name: fluxbank-user-postgres
@@ -31,8 +37,14 @@ services:
       POSTGRES_DB: fluxbank
     volumes:
       - fluxbank_user_postgres_data:/var/lib/postgresql/data
-    #networks:
-    # - fluxbank-database-network
+    networks:
+      - fluxbank-database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d fluxbank"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   transaction-postgres:
     image: postgres:latest
     container_name: fluxbank-transaction-postgres
@@ -45,8 +57,13 @@ services:
       POSTGRES_DB: fluxbank
     volumes:
       - fluxbank_transaction_postgres_data:/var/lib/postgresql/data
-    #networks:
-    # - fluxbank-database-network
+    networks:
+      - fluxbank-database-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d fluxbank"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   redis:
     image: redis:latest
@@ -54,8 +71,14 @@ services:
     restart: unless-stopped
     ports:
       - 6379:6379
-    #networks:
-    # - fluxbank-cache-network
+    networks:
+      - fluxbank-cache-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   mongodb:
     image: mongo:latest
     container_name: fluxbank-mongodb
@@ -67,104 +90,254 @@ services:
       - 27017:27017
     volumes:
       - fluxbank_mongodb_data:/var/lib/mongo/data
-  #  #networks:
-  # - fluxbank-database-network
-#
-#zookeeper:
-#  image: confluentinc/cp-zookeeper:latest
-#  container_name: fluxbank-zookeeper
-#  environment:
-#    ZOOKEEPER_CLIENT_PORT: 2181
-#    ZOOKEEPER_TICK_TIME: 2000
-#  ports:
-#    - 2181:2181
-#  #networks:
-#  #  - fluxbank-message-network
-#
-#kafka:
-#  image: confluentinc/cp-kafka:latest
-#  container_name: fluxbank-kafka
-#  depends_on:
-#    - zookeeper
-#  ports:
-#    - 9092:9092
-#  environment:
-#    KAFKA_BROKER_ID: 1
-#    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#    KAFKA_LISTENERS: INSIDE://0.0.0.0:9092
-#    KAFKA_ADVERTISED_LISTENERS: INSIDE://localhost:9092 # kafka:9092
-#    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT
-#    KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-#  #networks:
-#  # - fluxbank-message-network
-#
-## Monitoring
-#prometheus:
-#  image: prom/prometheus:latest
-#  container_name: fluxbank-prometheus
-#  restart: unless-stopped
-#  volumes:
-#    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-#    - ./prometheus/prometheus_data:/prometheus
-#  command:
-#    - '--config.file=/etc/prometheus/prometheus.yml'
-#    - '--storage.tsdb.path=/prometheus'
-#    - '--web.console.libraries=/etc/prometheus/console_libraries'
-#    - '--web.console.templates=/etc/prometheus/consoles'
-#    - '--web.enable-lifecycle'
-#  ports:
-#    - 9090:9090
-#  #networks:
-#  #  - fluxbank-monit-network
-#  user: root
-#
-#grafana:
-#  image: grafana/grafana
-#  container_name: fluxbank-grafana
-#  volumes:
-#    - fluxbank_grafana_data:/var/lib/grafana
-#  restart: unless-stopped
-#  ports:
-#    - 3000:3000
-#  #networks:
-#  #  - fluxbank-monit-network
-#  depends_on:
-#    - prometheus
-#  user: root
-    # Services
+    networks:
+      - fluxbank-database-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fluxbank-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    ports:
+      - 9090:9090
+    networks:
+      - fluxbank-monit-network
+    user: root
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana
+    container_name: fluxbank-grafana
+    volumes:
+      - fluxbank_grafana_data:/var/lib/grafana
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    networks:
+      - fluxbank-monit-network
+    depends_on:
+      - prometheus
+    user: root
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  #Services
   fraud-service:
-      container_name: fluxbank-fraud-service
-      build:
-        context: ./fraud-service        # Diretório com Dockerfile
-        dockerfile: Dockerfile 
-        target: runtime
-      ports:
-        - "8084:8080"
-      environment:
-        FRAUD_CHECK_COMPLETED_ARN: ${FRAUD_CHECK_COMPLETED_ARN}
-        MONGO_HOST: ${MONGO_HOST}
-        FRAUD_DETECTION_LAMBDA: ${FRAUD_DETECTION_LAMBDA}      
-        <<: [*aws-common]
-      depends_on:
-        redis:
-          condition: service_healthy
-      restart: aways
+    container_name: fluxbank-fraud-service
+    build:
+      context: ./fraud-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8080"
+    environment:
+      FRAUD_CHECK_COMPLETED_ARN: ${FRAUD_CHECK_COMPLETED_ARN}
+      MONGO_HOST: ${MONGO_HOST}
+      FRAUD_DETECTION_LAMBDA: ${FRAUD_DETECTION_LAMBDA}
+      <<: [*aws-common]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - fluxbank-database-network
+      - fluxbank-cache-network
+      - fluxbank-message-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  wallet-service:
+    container_name: fluxbank-wallet-service
+    build:
+      context: ./wallet-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    environment:
+      REDIS_HOST: redis
+      WALLET_POSTGRES_HOST: wallet-postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      <<: [*aws-common]
+    depends_on:
+      redis:
+        condition: service_healthy
+      wallet-postgres:
+        condition: service_healthy
+    networks:
+      - fluxbank-database-network
+      - fluxbank-cache-network
+      - fluxbank-message-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  user-service:
+    container_name: fluxbank-user-service
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      REDIS_HOST: redis
+      USER_POSTGRES_HOST: user-postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      <<: [*aws-common]
+    depends_on:
+      redis:
+        condition: service_healthy
+      user-postgres:
+        condition: service_healthy
+    networks:
+      - fluxbank-database-network
+      - fluxbank-cache-network
+      - fluxbank-message-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  notification-service:
+    container_name: fluxbank-notification-service
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8080"
+    environment:
+      MONGO_HOST: ${MONGO_HOST}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      <<: [*aws-common]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - fluxbank-database-network
+      - fluxbank-message-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  transaction-service:
+    container_name: fluxbank-transaction-service
+    build:
+      context: ./transaction-service
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8080"
+    environment:
+      MONGO_HOST: ${MONGO_HOST}
+      REDIS_HOST: redis
+      TRANSACTION_POSTGRES_HOST: transaction-postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      AWS_REGION: ${AWS_REGION}
+      WALLET_SERVICE_URI: wallet-service
+      USER_SERVICE_URI: user-service
+      <<: [*aws-common]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - fluxbank-database-network
+      - fluxbank-cache-network
+      - fluxbank-message-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   gateway-service:
-      build:
-        context: ./gateway-service        
-        dockerfile: Dockerfile
-        target: runtime                   
-      container_name: fluxbank-gateway-service
-      environment:
-        <<: [*aws-common]
-        REDIS_HOST: ${REDIS_HOST}
-      ports:
-        - "8080:8080"
-      depends_on:
-        redis:
-          condition: service_healthy
-      restart: aways
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    container_name: fluxbank-gateway-service
+    environment:
+      <<: [*aws-common]
+      REDIS_HOST: redis
+      WALLET_SERVICE_URI: wallet-service
+      USER_SERVICE_URI: user-service
+      TRANSACTION_SERVICE_URI: transaction-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      user-service:
+        condition: service_healthy
+      wallet-service:
+        condition: service_healthy
+      notification-service:
+        condition: service_healthy
+      transaction-service:
+        condition: service_healthy
+      fraud-service:
+        condition: service_healthy
+    networks:
+      - fluxbank-cache-network
+      - fluxbank-message-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 networks:
   fluxbank-monit-network:
@@ -179,6 +352,7 @@ networks:
   fluxbank-database-network:
     internal: true
     name: fluxbank-database-network
+
 volumes:
   fluxbank_wallet_postgres_data:
   fluxbank_user_postgres_data:

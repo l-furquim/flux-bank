@@ -5,12 +5,12 @@ spring:
     name: transaction-service
   data:
     mongodb:
-      uri: mongodb://root:root@localhost:27017/fluxbank?authSource=admin
+      uri: mongodb://root:root@${MONGO_HOST:localhost}:27017/fluxbank?authSource=admin
     redis:
       host: ${REDIS_HOST:localhost}
       port: 6379
   datasource:
-    url: jdbc:postgresql://${TRANSACTION_POSTGRES_HOST:localhost}:5434/${POSTGRES_DB:fluxbank}
+    url: jdbc:postgresql://${TRANSACTION_POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:fluxbank}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
@@ -64,9 +64,9 @@ resilience4j:
 
 aws:
   sns:
-    transaction-initiated-topic: arn:aws:sns:us-east-1:710271919573:transaction-initiated
-    transaction-completed-topic: arn:aws:sns:us-east-1:710271919573:transaction-completed
-    transaction-failed-topic: arn:aws:sns:us-east-1:710271919573:transaction-failed
+    transaction-initiated-topic: ${TRANSACTION_INITIATED_TOPIC}
+    transaction-completed-topic: ${TRANSACTION_COMPLETED_TOPIC}
+    transaction-failed-topic: ${TRANSACTION_FAILED_TOPIC}
   region: ${AWS_REGION:us-east-1}
 feign-client:
   wallet-uri: ${WALLET_SERVICE_URI:http://localhost:8081/api/v1/wallets}
