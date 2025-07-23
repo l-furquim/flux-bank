@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIX Enviado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .pix-icon {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 30px 20px;
+        }
+
+        .success-badge {
+            background-color: #e8f4fd;
+            color: #0d6efd;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #007bff;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .transaction-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #6c757d;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .security-note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .security-note strong {
+            color: #856404;
+        }
+
+        .arrow-down {
+            text-align: center;
+            margin: 15px 0;
+            color: #007bff;
+            font-size: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .amount {
+                font-size: 28px;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="pix-icon">PIX</div>
+        <h1>PIX Enviado!</h1>
+        <p>Sua transferência foi realizada com sucesso</p>
+    </div>
+
+    <div class="content">
+        <div class="success-badge">✓ Transferência enviada</div>
+
+        <div class="amount">{{valor}}</div>
+
+        <div class="arrow-down">⬇</div>
+
+        <div class="transaction-details">
+            <div class="detail-row">
+                <span class="detail-label">Para:</span>
+                <span class="detail-value">{{nomeDestinatario}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">CPF/CNPJ:</span>
+                <span class="detail-value">{{cpfDestinatario}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Chave PIX:</span>
+                <span class="detail-value">{{chavePix}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Instituição:</span>
+                <span class="detail-value">Fluxbank</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Data e hora:</span>
+                <span class="detail-value">{{dataHora}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">ID da transação:</span>
+                <span class="detail-value">{{idTransacao}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Descrição:</span>
+                <span class="detail-value">{{descricao}}</span>
+            </div>
+        </div>
+
+        <div class="security-note">
+            <strong>🔒 Importante:</strong> Guarde este comprovante. Em caso de problemas, entre em contato conosco informando o ID da transação.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>{{nomeBanco}}</strong></p>
+        <p>Este é um e-mail automático, não responda esta mensagem.</p>
+        <p>© 2025 Todos os direitos reservados.</p>
+    </div>
+</div>
+</body>
+</html>

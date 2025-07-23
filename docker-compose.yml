@@ -1,3 +1,8 @@
+x-aws-common: &aws-common
+  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+  AWS_REGION: ${AWS_REGION:-us-east-1}
+
 services:
   # Infrastructure
   wallet-postgres:
@@ -126,6 +131,40 @@ services:
 #  depends_on:
 #    - prometheus
 #  user: root
+    # Services
+  fraud-service:
+      container_name: fluxbank-fraud-service
+      build:
+        context: ./fraud-service        # Diretório com Dockerfile
+        dockerfile: Dockerfile 
+        target: runtime
+      ports:
+        - "8084:8080"
+      environment:
+        FRAUD_CHECK_COMPLETED_ARN: ${FRAUD_CHECK_COMPLETED_ARN}
+        MONGO_HOST: ${MONGO_HOST}
+        FRAUD_DETECTION_LAMBDA: ${FRAUD_DETECTION_LAMBDA}      
+        <<: [*aws-common]
+      depends_on:
+        redis:
+          condition: service_healthy
+      restart: aways
+
+  gateway-service:
+      build:
+        context: ./gateway-service        
+        dockerfile: Dockerfile
+        target: runtime                   
+      container_name: fluxbank-gateway-service
+      environment:
+        <<: [*aws-common]
+        REDIS_HOST: ${REDIS_HOST}
+      ports:
+        - "8080:8080"
+      depends_on:
+        redis:
+          condition: service_healthy
+      restart: aways
 
 networks:
   fluxbank-monit-network:
@@ -140,7 +179,6 @@ networks:
   fluxbank-database-network:
     internal: true
     name: fluxbank-database-network
-
 volumes:
   fluxbank_wallet_postgres_data:
   fluxbank_user_postgres_data:

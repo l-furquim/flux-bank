@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,5 +35,25 @@ public class Notification {
     private String content;
 
     private LocalDateTime sentAt;
+
+    private UUID transactionId;
+
+    private String transactionType;
+
+    private String eventType;
+
+    private BigDecimal amount;
+
+    private String currency;
+
+    private String description;
+
+    private String account;
+
+    private LocalDateTime transactionProcessedAt;
+
+    private String failureReason;
+
+    private LocalDateTime createdAt;
 
 }

@@ -1,6 +1,7 @@
 package com.fluxbank.transaction_service.client;
 
 import com.fluxbank.transaction_service.controller.dto.ResolvePixKeyResponse;
+import com.fluxbank.transaction_service.controller.dto.GetUserDataResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,11 @@ public interface IUserClient {
     @GetMapping("/pix-keys/{keyValue}")
     public ResponseEntity<ResolvePixKeyResponse> resolvePixKey(
             @PathVariable("keyValue") String keyValue
+    );
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<GetUserDataResponse> getUserData(
+            @PathVariable("userId") String userId
     );
 
 }

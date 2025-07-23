@@ -2,6 +2,7 @@ package com.fluxbank.transaction_service.service;
 
 import com.fluxbank.transaction_service.client.IUserClient;
 import com.fluxbank.transaction_service.controller.dto.ResolvePixKeyResponse;
+import com.fluxbank.transaction_service.controller.dto.GetUserDataResponse;
 import com.fluxbank.transaction_service.model.exceptions.PixKeyNotFoundException;
 import com.fluxbank.transaction_service.model.exceptions.ResolvePixKeyException;
 import com.fluxbank.transaction_service.model.exceptions.UserClientUnavailableException;
@@ -39,6 +40,27 @@ public class UserClientService {
 
         if (throwable instanceof FeignException.NotFound) {
             throw new PixKeyNotFoundException("Chave PIX não encontrada.");
+        }
+
+        throw new UserClientUnavailableException("Erro ao acessar serviço de usuário: " + throwable.getMessage());
+    }
+
+    @CircuitBreaker(name = "userService", fallbackMethod = "fallbackGetUserData")
+    public GetUserDataResponse getUserData(String userId) {
+        ResponseEntity<GetUserDataResponse> response = client.getUserData(userId);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            return response.getBody();
+        }
+
+        throw new UserClientUnavailableException("Erro ao buscar dados do usuário: " + userId);
+    }
+
+    private GetUserDataResponse fallbackGetUserData(String userId, Throwable throwable) {
+        log.error("Erro ao buscar dados do usuário '{}': {}", userId, throwable.getMessage());
+
+        if (throwable instanceof FeignException.NotFound) {
+            throw new UserClientUnavailableException("Usuário não encontrado: " + userId);
         }
 
         throw new UserClientUnavailableException("Erro ao acessar serviço de usuário: " + throwable.getMessage());

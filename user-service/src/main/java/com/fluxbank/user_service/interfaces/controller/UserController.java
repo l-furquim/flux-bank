@@ -174,4 +174,25 @@ public interface UserController {
             @PathVariable("keyValue") String keyValue
     );
 
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Dados do usuário buscados com sucesso",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Usuário não encontrado.",
+                    content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro interno não mapeado",
+                    content = @Content
+            )
+    })
+    public ResponseEntity<GetUserDataResponse> getUserData(
+            @PathVariable("userId") String userId
+    );
+
 }

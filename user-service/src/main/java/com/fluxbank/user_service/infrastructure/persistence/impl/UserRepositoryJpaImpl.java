@@ -57,4 +57,11 @@ public class UserRepositoryJpaImpl implements UserRepository {
         repository.save(userEntity);
     }
 
+    @Override
+    public Optional<User> findById(UUID id) {
+        Optional<UserEntity> user = repository.findById(id);
+
+        return user.map(mapper::toDomain);
+    }
+
 }

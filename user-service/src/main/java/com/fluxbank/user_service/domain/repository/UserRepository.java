@@ -11,4 +11,6 @@ public interface UserRepository {
     User createUser(User user);
     Optional<User> getUserData(UUID userId);
     void updateUserData(User userWithNewData);
+    Optional<User> findById(UUID id);
+
 }

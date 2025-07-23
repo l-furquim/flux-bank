@@ -10,32 +10,67 @@ import java.util.UUID;
 @Component
 public class NotificationMapper {
 
-    public Notification toDomain(NotificationEntity notification) {
+    public Notification toDomain(NotificationEntity entity) {
+        if (entity == null) return null;
+        
         return Notification.builder()
-                .id(notification.getId())
-                .title(notification.getTitle())
-                .topic(notification.getTopic())
-                .type(notification.getType())
-                .sentAt(notification.getSentAt())
-                .content(notification.getContent())
-                .subject(notification.getSubject())
-                .userId(notification.getUserId())
-                .status(notification.getStatus())
+                .id(entity.getId())
+                .subject(entity.getSubject())
+                .userId(entity.getUserId())
+                .type(entity.getType())
+                .topic(entity.getTopic())
+                .status(entity.getStatus())
+                .title(entity.getTitle())
+                .content(entity.getContent())
+                .sentAt(entity.getSentAt())
+                .transactionId(entity.getTransactionId())
+                .transactionType(entity.getTransactionType())
+                .eventType(entity.getEventType())
+                .amount(entity.getAmount())
+                .currency(entity.getCurrency())
+                .description(entity.getDescription())
+                .account(entity.getAccount())
+                .transactionProcessedAt(entity.getTransactionProcessedAt())
+                .failureReason(entity.getFailureReason())
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 
     public NotificationEntity toEntity(Notification notification) {
+        if (notification == null) return null;
+        
+        LocalDateTime now = LocalDateTime.now();
+        
         return NotificationEntity.builder()
-                .id(UUID.randomUUID())
-                .title(notification.getTitle())
-                .topic(notification.getTopic())
-                .type(notification.getType())
-                .sentAt(LocalDateTime.now())
-                .content(notification.getContent())
+                .id(notification.getId() != null ? notification.getId() : UUID.randomUUID())
                 .subject(notification.getSubject())
                 .userId(notification.getUserId())
+                .type(notification.getType())
+                .topic(notification.getTopic())
                 .status(notification.getStatus())
+                .title(notification.getTitle())
+                .content(notification.getContent())
+                .sentAt(notification.getSentAt())
+                .transactionId(notification.getTransactionId())
+                .transactionType(notification.getTransactionType())
+                .eventType(notification.getEventType())
+                .amount(notification.getAmount())
+                .currency(notification.getCurrency())
+                .description(notification.getDescription())
+                .account(notification.getAccount())
+                .transactionProcessedAt(notification.getTransactionProcessedAt())
+                .failureReason(notification.getFailureReason())
+                .createdAt(notification.getCreatedAt() != null ? notification.getCreatedAt() : now)
                 .build();
+    }
+
+    public NotificationEntity updateEntity(NotificationEntity entity, Notification notification) {
+        if (entity == null || notification == null) return entity;
+        
+        entity.setStatus(notification.getStatus());
+        entity.setSentAt(notification.getSentAt());
+        
+        return entity;
     }
 
 }
