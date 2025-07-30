@@ -5,6 +5,7 @@ import com.fluxbank.transaction_service.controller.dto.GetUserDataResponse;
 import com.fluxbank.transaction_service.model.CardTransaction;
 import com.fluxbank.transaction_service.model.PixTransaction;
 import com.fluxbank.transaction_service.model.Transaction;
+import com.fluxbank.transaction_service.model.enums.TransactionStatus;
 import com.fluxbank.transaction_service.service.UserClientService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -49,9 +50,11 @@ public class TransactionNotificationMapper {
                 transaction, "SENT", account, failureReason, payerData, payeeData
             ));
             
-            notifications.add(createNotification(
-                transaction, "RECEIVED", account, failureReason, payerData, payeeData
-            ));
+            if(!transaction.getStatus().equals(TransactionStatus.FAILED)) {
+                notifications.add(createNotification(
+                        transaction, "RECEIVED", account, failureReason, payerData, payeeData
+                ));
+            }
             
             log.info("Created PIX notifications for transaction {}: SENT and RECEIVED", transaction.getId());
             

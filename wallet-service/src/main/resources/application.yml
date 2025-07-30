@@ -48,9 +48,6 @@ management:
   metrics:
     enable:
       jvm: true
-    export:
-      prometheus:
-        enabled: true
     distribution:
       sla:
         http:
@@ -58,3 +55,7 @@ management:
             requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
     tags:
       application: wallet-service
+  prometheus:
+    metrics:
+      export:
+        enabled: true

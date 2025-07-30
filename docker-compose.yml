@@ -10,7 +10,7 @@ services:
     container_name: fluxbank-wallet-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - 5432:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
@@ -30,7 +30,7 @@ services:
     container_name: fluxbank-user-postgres
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - 5433:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
@@ -50,7 +50,7 @@ services:
     container_name: fluxbank-transaction-postgres
     restart: unless-stopped
     ports:
-      - "5434:5432"
+      - 5434:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
@@ -151,206 +151,18 @@ services:
       retries: 3
 
   #Services
-  fraud-service:
-    container_name: fluxbank-fraud-service
-    build:
-      context: ./fraud-service
-      dockerfile: Dockerfile
-    ports:
-      - "8084:8080"
-    environment:
-      FRAUD_CHECK_COMPLETED_ARN: ${FRAUD_CHECK_COMPLETED_ARN}
-      MONGO_HOST: ${MONGO_HOST}
-      FRAUD_DETECTION_LAMBDA: ${FRAUD_DETECTION_LAMBDA}
-      <<: [*aws-common]
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - fluxbank-database-network
-      - fluxbank-cache-network
-      - fluxbank-message-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  wallet-service:
-    container_name: fluxbank-wallet-service
-    build:
-      context: ./wallet-service
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8080"
-    environment:
-      REDIS_HOST: redis
-      WALLET_POSTGRES_HOST: wallet-postgres
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      <<: [*aws-common]
-    depends_on:
-      redis:
-        condition: service_healthy
-      wallet-postgres:
-        condition: service_healthy
-    networks:
-      - fluxbank-database-network
-      - fluxbank-cache-network
-      - fluxbank-message-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  user-service:
-    container_name: fluxbank-user-service
-    build:
-      context: ./user-service
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8080"
-    environment:
-      REDIS_HOST: redis
-      USER_POSTGRES_HOST: user-postgres
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      JWT_SECRET: ${JWT_SECRET}
-      <<: [*aws-common]
-    depends_on:
-      redis:
-        condition: service_healthy
-      user-postgres:
-        condition: service_healthy
-    networks:
-      - fluxbank-database-network
-      - fluxbank-cache-network
-      - fluxbank-message-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  notification-service:
-    container_name: fluxbank-notification-service
-    build:
-      context: ./notification-service
-      dockerfile: Dockerfile
-    ports:
-      - "8085:8080"
-    environment:
-      MONGO_HOST: ${MONGO_HOST}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      <<: [*aws-common]
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      user-service:
-        condition: service_healthy
-    networks:
-      - fluxbank-database-network
-      - fluxbank-message-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  transaction-service:
-    container_name: fluxbank-transaction-service
-    build:
-      context: ./transaction-service
-      dockerfile: Dockerfile
-    ports:
-      - "8083:8080"
-    environment:
-      MONGO_HOST: ${MONGO_HOST}
-      REDIS_HOST: redis
-      TRANSACTION_POSTGRES_HOST: transaction-postgres
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      AWS_REGION: ${AWS_REGION}
-      WALLET_SERVICE_URI: wallet-service
-      USER_SERVICE_URI: user-service
-      <<: [*aws-common]
-    depends_on:
-      mongodb:
-        condition: service_healthy
-      user-service:
-        condition: service_healthy
-    networks:
-      - fluxbank-database-network
-      - fluxbank-cache-network
-      - fluxbank-message-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-  gateway-service:
-    build:
-      context: ./gateway-service
-      dockerfile: Dockerfile
-    container_name: fluxbank-gateway-service
-    environment:
-      <<: [*aws-common]
-      REDIS_HOST: redis
-      WALLET_SERVICE_URI: wallet-service
-      USER_SERVICE_URI: user-service
-      TRANSACTION_SERVICE_URI: transaction-service
-    ports:
-      - "8080:8080"
-    depends_on:
-      user-service:
-        condition: service_healthy
-      wallet-service:
-        condition: service_healthy
-      notification-service:
-        condition: service_healthy
-      transaction-service:
-        condition: service_healthy
-      fraud-service:
-        condition: service_healthy
-    networks:
-      - fluxbank-cache-network
-      - fluxbank-message-network
-    restart: always
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
 networks:
   fluxbank-monit-network:
-    internal: true
+#    internal: true
     name: fluxbank-monit-network
   fluxbank-message-network:
-    internal: true
+#    internal: true
     name: fluxbank-message-network
   fluxbank-cache-network:
-    internal: true
+#    internal: true
     name: fluxbank-cache-network
   fluxbank-database-network:
-    internal: true
+#    internal: true
     name: fluxbank-database-network
 
 volumes:

@@ -24,7 +24,9 @@ variable "topics" {
     "transaction-initiated",
     "fraud-check-completed",
     "transaction-completed",
-    "transaction-failed"
+    "transaction-failed",
+    "pix-key-created",
+    "limit-exceeded",
   ]
 }
 
@@ -34,7 +36,7 @@ variable "event_topics" {
   default = {
     fraud        = ["transaction-initiated"]
     transaction  = ["fraud-check-completed"]
-    notification = ["transaction-completed", "transaction-failed"]
+    notification = ["transaction-completed", "transaction-failed", "pix-key-created", "limit-exceeded"]
     analytics    = ["*"]
   }
 }

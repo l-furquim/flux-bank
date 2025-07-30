@@ -4,9 +4,10 @@ import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationE
 
 public interface MailService {
 
-    void sendPixReceived(TransactionNotificationEvent event);
-    void sendPixSent(TransactionNotificationEvent event);
+    void sendPixReceived(TransactionNotificationEvent event,String valueFormated);
+    void sendPixSent(TransactionNotificationEvent event,String valueFormated);
     void sendPixKeyCreated();
     void sendLimitExceeded();
+    void sendPixSentFailed(TransactionNotificationEvent event, String valueFormated);
 
 }

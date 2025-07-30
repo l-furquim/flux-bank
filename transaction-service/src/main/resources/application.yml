@@ -10,7 +10,7 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: 6379
   datasource:
-    url: jdbc:postgresql://${TRANSACTION_POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:fluxbank}
+    url: jdbc:postgresql://${TRANSACTION_POSTGRES_HOST:localhost}:5434/${POSTGRES_DB:fluxbank}
     username: ${POSTGRES_USER:root}
     password: ${POSTGRES_PASSWORD:root}
     driver-class-name: org.postgresql.Driver
@@ -37,9 +37,6 @@ management:
   metrics:
     enable:
       jvm: true
-    export:
-      prometheus:
-        enabled: true
     distribution:
       sla:
         http:
@@ -47,6 +44,10 @@ management:
             requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
     tags:
       application: transaction-service
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 resilience4j:
   circuitbreaker:

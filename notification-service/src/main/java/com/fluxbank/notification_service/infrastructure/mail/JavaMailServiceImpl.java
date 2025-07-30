@@ -12,12 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 @Slf4j
 @Component
@@ -28,18 +25,15 @@ public class JavaMailServiceImpl implements MailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
-    private static final String MOCK_NAME = "João Silva";
-    private static final String MOCK_CPF = "12345678901";
-
     public JavaMailServiceImpl(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
     @Override
-    public void sendPixReceived(TransactionNotificationEvent event) {
+    public void sendPixReceived(TransactionNotificationEvent event, String valueFormated) {
         try {
-            String subject = "PIX Recebido -  " + event.currency() + " " + formatCurrencySimple(event.amount());
-            String htmlContent = buildPixReceivedTemplate(event);
+            String subject = event.status().equals("FAILED") ? "Falha ao enviar o pix de " + valueFormated : "PIX Recebido -  " + valueFormated;
+            String htmlContent = buildPixReceivedTemplate(event, valueFormated);
 
             sendEmail(event.payeeEmail(), subject, htmlContent);
             log.info("PIX received notification sent for transaction: {}", event.transactionId());
@@ -50,10 +44,10 @@ public class JavaMailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendPixSent(TransactionNotificationEvent event) {
+    public void sendPixSent(TransactionNotificationEvent event, String valueFormated) {
         try {
-            String subject = "PIX Enviado - " + event.currency() + " " + formatCurrencySimple(event.amount());
-            String htmlContent = buildPixSentTemplate(event);
+            String subject = "PIX Enviado - " + valueFormated;
+            String htmlContent = buildPixSentTemplate(event, valueFormated);
 
             sendEmail(event.payerEmail(), subject, htmlContent);
             log.info("PIX sent notification sent for transaction: {}", event.transactionId());
@@ -83,6 +77,22 @@ public class JavaMailServiceImpl implements MailService {
         }
     }
 
+    @Override
+    public void sendPixSentFailed(TransactionNotificationEvent event, String valueFormated) {
+        String subject = "Falha ao enviar o pix de " + valueFormated;
+
+        try {
+            String htmlContent = buildPixSentFailed(event, valueFormated);
+
+            sendEmail(event.payerEmail(), subject, htmlContent);
+            log.info("PIX sent failed notification sent for transaction: {}", event.transactionId());
+        } catch (Exception e) {
+            log.error("Failed to send PIX failed notification for transaction: {}", event.transactionId(), e);
+            throw new SendMailFailedException("Failed to send PIX failed notification " + e.getMessage());
+        }
+
+    }
+
     private void sendEmail(String to, String subject, String htmlContent) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -95,11 +105,11 @@ public class JavaMailServiceImpl implements MailService {
         mailSender.send(message);
     }
 
-    private String buildPixReceivedTemplate(TransactionNotificationEvent event) {
+    private String buildPixReceivedTemplate(TransactionNotificationEvent event, String valueFormated) {
         String template = loadTemplate("pix_received_template.html");
 
         return template
-                .replace("{{valor}}", formatCurrency(event.amount()))
+                .replace("{{valor}}", valueFormated)
                 .replace("{{nomeRemetente}}", event.payerName())
                 .replace("{{cpfRemetente}}", event.payerCpf())
                 .replace("{{dataHora}}", formatDateTime(event.processedAt()))
@@ -107,11 +117,25 @@ public class JavaMailServiceImpl implements MailService {
                 .replace("{{descricao}}", event.description() != null ? event.description() : "Transferência PIX");
     }
 
-    private String buildPixSentTemplate(TransactionNotificationEvent event) {
+    private String buildPixSentFailed(TransactionNotificationEvent event, String valueFormated) {
+        String template = loadTemplate("pix_failed_template.html");
+
+        return template
+                .replace("{{valor}}", valueFormated)
+                .replace("{{nomeDestinatario}}", event.payeeName())
+                .replace("{{cpfDestinatario}}", event.payeeCpf())
+                .replace("{{chavePix}}", event.payeeCpf())
+                .replace("{{dataHora}}", formatDateTime(event.processedAt()))
+                .replace("{{idTransacao}}", event.transactionId().toString())
+                .replace("{{motivoFalha}}", event.failureReason() != null ? event.failureReason() : "Erro inesperado")
+                .replace("{{descricao}}", event.description() != null ? event.description() : "Transferência PIX");
+    }
+
+    private String buildPixSentTemplate(TransactionNotificationEvent event, String valueFormated) {
         String template = loadTemplate("pix_sent_template.html");
 
         return template
-                .replace("{{valor}}", formatCurrency(event.amount()))
+                .replace("{{valor}}", valueFormated)
                 .replace("{{nomeDestinatario}}", event.payeeName())
                 .replace("{{cpfDestinatario}}", event.payeeCpf())
                 .replace("{{chavePix}}", maskPixKey(event.account()))
@@ -134,19 +158,7 @@ public class JavaMailServiceImpl implements MailService {
         }
     }
 
-    private String formatCurrency(BigDecimal value) {
-        if (value == null) return "R$ 0,00";
 
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-        return formatter.format(value);
-    }
-
-    private String formatCurrencySimple(BigDecimal value) {
-        if (value == null) return "0,00";
-
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
-        return formatter.format(value).replace("R$", "").trim();
-    }
 
     private String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return "";
@@ -181,9 +193,5 @@ public class JavaMailServiceImpl implements MailService {
         }
 
         return pixKey.substring(0, Math.min(4, pixKey.length())) + "***";
-    }
-
-    private String getMockUserEmail(java.util.UUID userId) {
-        return "user" + userId.toString().substring(0, 8) + "@fluxbank.com";
     }
 }

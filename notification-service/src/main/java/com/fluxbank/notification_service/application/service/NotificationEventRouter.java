@@ -7,6 +7,10 @@ import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationE
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 @Slf4j
 @Component
 public class NotificationEventRouter {
@@ -29,18 +33,23 @@ public class NotificationEventRouter {
         log.info("Determined event type: {} -> template: {}", eventType, eventType.getTemplateName());
         
         switch (eventType) {
-            case PIX_SENT, PIX_SENT_FAILED -> {
-                mailService.sendPixSent(event);
+            case PIX_SENT_FAILED -> {
+                mailService.sendPixSentFailed(event, formatCurrencySimple(event.amount(), event.currency()));
+                log.info("PIX failed for sent notification processed for transaction: {}", event.transactionId());
+            }
+            case PIX_SENT -> {
+                mailService.sendPixSent(event, formatCurrencySimple(event.amount(), event.currency()));
                 log.info("PIX sent notification processed for transaction: {}", event.transactionId());
             }
             case PIX_RECEIVED, PIX_RECEIVED_FAILED -> {
-                mailService.sendPixReceived(event);
+                mailService.sendPixReceived(event, formatCurrencySimple(event.amount(), event.currency()));
                 log.info("PIX received notification processed for transaction: {}", event.transactionId());
             }
             case PIX_KEY_CREATED -> {
                 mailService.sendPixKeyCreated();
                 log.info("PIX key created notification processed");
             }
+
             case LIMIT_EXCEEDED -> {
                 mailService.sendLimitExceeded();
                 log.info("Limit exceeded notification processed");
@@ -56,12 +65,18 @@ public class NotificationEventRouter {
             }
         }
     }
-    
-    public NotificationEventType determineEventType(TransactionNotificationEvent event) {
-        return NotificationEventType.fromEventTypeAndTransactionType(
-            event.eventType(), 
-            event.transactionType(), 
-            event.status()
-        );
+
+    private String formatCurrencySimple(BigDecimal value, String currency) {
+        if (value == null) return "0,00";
+
+        Locale locale = switch (currency) {
+            case "BR" -> new Locale("pt", "BR");
+            case "USD" -> Locale.US;
+            case "EUR" -> Locale.GERMANY;
+            default -> Locale.getDefault();
+        };
+
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(locale);
+        return formatter.format(value);
     }
 }

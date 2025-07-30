@@ -9,7 +9,7 @@ spring:
       uri: mongodb://root:root@${MONGO_HOST:localhost}:27017/fluxbank?authSource=admin
 aws:
   sns:
-    fraud-check-completed-topic: ${FRAUD_CHECK_COMPLETED_ARN:arn:aws:sns:us-east-1:710271919573:fraud-check-completed}
+    fraud-check-completed-topic: ${FRAUD_CHECK_COMPLETED_ARN}
   lambda:
     fraud-detection: ${FRAUD_DETECTION_LAMBDA:fraud-dev-lambda}
   region: ${AWS_REGION:us-east-1}

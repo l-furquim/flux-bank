@@ -17,3 +17,21 @@ spring:
           auth: true
           starttls:
             enable: true
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    enable:
+      jvm: true
+    distribution:
+      sla:
+        http:
+          server:
+            requests: 50ms, 100ms, 200ms, 300ms, 500ms, 1s
+    tags:
+      application: gateway-service

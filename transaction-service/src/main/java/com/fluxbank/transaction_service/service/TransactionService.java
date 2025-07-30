@@ -201,7 +201,8 @@ public class TransactionService {
 
         eventService.createTransactionEvent(transaction);
 
-        List<TransactionNotificationDto> notifications = notificationMapper.mapTransactionToNotifications(transaction);
+        List<TransactionNotificationDto> notifications =
+                notificationMapper.mapTransactionToNotifications(transaction);
 
         for (TransactionNotificationDto notification : notifications) {
             log.info("Publishing {} notification for transaction {} to user {}", 
