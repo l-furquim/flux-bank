@@ -152,7 +152,7 @@ O sistema é composto por 6 microserviços independentes que se comunicam atrav�
 - Histórico de notificações
 
 **Padrão de comunicação:**
-- Consome: eventos de conclusão de transações
+- Consome: eventos de conclusão de transações e chaves pix criadas
 
 **Banco de dados:** MongoDB (notifications)
 
@@ -174,6 +174,8 @@ O sistema é composto por 6 microserviços independentes que se comunicam atrav�
 - `fraud.check.completed` - Análise de fraude concluída
 - `transaction.completed` - Transação concluída com sucesso
 - `transaction.failed` - Transação falhada
+- `pix-key-created` - Criação de chave pix
+- `limit-exceeded` - Limite de transações excedido
 
 ## Execução do Ambiente
 
