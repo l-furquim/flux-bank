@@ -3,6 +3,7 @@ package com.fluxbank.notification_service.application.service;
 import com.fluxbank.notification_service.domain.enums.EventSource;
 import com.fluxbank.notification_service.domain.enums.NotificationEventType;
 import com.fluxbank.notification_service.domain.service.MailService;
+import com.fluxbank.notification_service.interfaces.dto.PixkeyCreatedEventData;
 import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,7 @@ public class NotificationEventRouter {
         this.mailService = mailService;
     }
     
-    public void routeEvent(TransactionNotificationEvent event, EventSource eventSource) {
+    public void routeTransactionEvent(TransactionNotificationEvent event, EventSource eventSource) {
         log.info("Routing notification event: {} from source: {}", event.eventType(), eventSource);
         
         NotificationEventType eventType = NotificationEventType.fromEventTypeAndTransactionType(
@@ -45,10 +46,6 @@ public class NotificationEventRouter {
                 mailService.sendPixReceived(event, formatCurrencySimple(event.amount(), event.currency()));
                 log.info("PIX received notification processed for transaction: {}", event.transactionId());
             }
-            case PIX_KEY_CREATED -> {
-                mailService.sendPixKeyCreated();
-                log.info("PIX key created notification processed");
-            }
 
             case LIMIT_EXCEEDED -> {
                 mailService.sendLimitExceeded();
@@ -64,6 +61,13 @@ public class NotificationEventRouter {
                 log.warn("Unknown event type received: {} - {}", event.eventType(), event.transactionType());
             }
         }
+    }
+
+    public void routePixKetCreatedEvent(PixkeyCreatedEventData data, EventSource eventSource){
+        log.info("Routing notification event: {} from source: {}", data, eventSource);
+
+        mailService.sendPixKeyCreated(data);
+        log.info("PIX key created notification processed");
     }
 
     private String formatCurrencySimple(BigDecimal value, String currency) {

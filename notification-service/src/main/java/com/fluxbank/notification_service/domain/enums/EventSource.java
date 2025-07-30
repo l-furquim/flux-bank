@@ -2,9 +2,8 @@ package com.fluxbank.notification_service.domain.enums;
 
 public enum EventSource {
     TRANSACTION_SERVICE("transaction-service"),
+    USER_SERVICE("user-service"),
     WALLET_SERVICE("wallet-service"),
-    PIX_SERVICE("pix-service"),
-    LIMIT_SERVICE("limit-service"),
     SYSTEM("system");
     
     private final String serviceName;
@@ -23,9 +22,9 @@ public enum EventSource {
         if (topicArn.contains("transaction-completed") || topicArn.contains("transaction-failed")) {
             return TRANSACTION_SERVICE;
         } else if (topicArn.contains("pix-key-created")) {
-            return PIX_SERVICE;
+            return USER_SERVICE;
         } else if (topicArn.contains("limit-exceeded")) {
-            return LIMIT_SERVICE;
+            return WALLET_SERVICE;
         }
         
         return SYSTEM;

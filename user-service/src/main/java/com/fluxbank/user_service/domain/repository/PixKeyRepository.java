@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface PixKeyRepository {
 
-    void createPixKey(PixKey pixkey);
+    PixKey createPixKey(PixKey pixkey);
     List<PixKey> findByUserId(UUID userId);
     void updatePixKey(PixKey pixKey);
     void deletePixKey(UUID pixKeyId);

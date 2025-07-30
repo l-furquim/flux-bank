@@ -6,6 +6,7 @@ import com.fluxbank.notification_service.domain.enums.NotificationEventType;
 import com.fluxbank.notification_service.domain.factory.NotificationFactory;
 import com.fluxbank.notification_service.domain.model.Notification;
 import com.fluxbank.notification_service.domain.repository.NotificationRepository;
+import com.fluxbank.notification_service.interfaces.dto.PixkeyCreatedEventData;
 import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class SendNotificationService implements SendNotificationUsecase {
     }
 
     @Override
-    public void send(TransactionNotificationEvent data) {
+    public void sendTransactionUsecase(TransactionNotificationEvent data) {
         try {
             log.info("Processing notification event: {} - {}", data.eventType(), data.transactionId());
             
@@ -42,16 +43,17 @@ public class SendNotificationService implements SendNotificationUsecase {
                 data.status()
             );
             
-            UUID targetUserId = determineTargetUser(data);
-            
+            UUID targetUserId = determineTargetUserId(data);
+            String targetUserEmail = determineTargetUserEmail(data);
+
             Notification notification = notificationFactory.createFromTransactionEvent(
-                data, eventType, targetUserId
+                data, eventType, targetUserId,targetUserEmail
             );
             
             Notification savedNotification = repository.save(notification);
 
             try {
-                eventRouter.routeEvent(data, eventSource);
+                eventRouter.routeTransactionEvent(data, eventSource);
                 
                 Notification sentNotification = notificationFactory.markAsSent(savedNotification);
                 repository.save(sentNotification);
@@ -76,14 +78,61 @@ public class SendNotificationService implements SendNotificationUsecase {
             throw new RuntimeException("Failed to send notification", e);
         }
     }
-    
-    private UUID determineTargetUser(TransactionNotificationEvent data) {
+
+    @Override
+    public void sendPixkeyCreatedUsecase(PixkeyCreatedEventData data) {
+        try {
+            log.info("Processing pix key created notification event: {}", data.userEmail());
+
+            EventSource source = EventSource.USER_SERVICE;
+
+            Notification notification = notificationFactory.createFromPixKeyCreatedEvent(
+                    data, UUID.fromString(data.userId())
+            );
+
+            Notification savedNotification = repository.save(notification);
+
+            try {
+                eventRouter.routePixKetCreatedEvent(data,source );
+
+                Notification sentNotification = notificationFactory.markAsSent(savedNotification);
+                repository.save(sentNotification);
+
+                log.info("Pix key created notification sent successfully: {}", savedNotification.getId());
+            } catch (Exception e) {
+                log.error("Failed to send notification: {}", savedNotification.getId(), e);
+
+                Notification failedNotification = notificationFactory.markAsFailed(
+                        savedNotification, e.getMessage()
+                );
+                repository.save(failedNotification);
+
+                throw e;
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to process notification event: {}", data.key(), e);
+            throw new RuntimeException("Failed to send notification", e);
+        }
+    }
+
+    private UUID determineTargetUserId(TransactionNotificationEvent data) {
         if ("SENT".equals(data.eventType())) {
             return data.payerId();
         }
-        else if ("RECEIVED".equals(data.eventType())) {
+        if ("RECEIVED".equals(data.eventType())) {
             return data.payeeId();
         }
         return data.payerId();
+    }
+
+    private String determineTargetUserEmail(TransactionNotificationEvent data) {
+        if ("SENT".equals(data.eventType())) {
+            return data.payerEmail();
+        }
+        if ("RECEIVED".equals(data.eventType())) {
+            return data.payeeEmail();
+        }
+        return data.payerEmail();
     }
 }

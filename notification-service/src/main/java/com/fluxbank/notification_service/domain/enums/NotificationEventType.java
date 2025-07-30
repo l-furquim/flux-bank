@@ -43,7 +43,8 @@ public enum NotificationEventType {
                 case "LIMIT_EXCEEDED" -> LIMIT_EXCEEDED;
                 default -> UNKNOWN;
             };
-        } else if ("FAILED".equals(status)) {
+        }
+        if ("FAILED".equals(status)) {
             return switch (eventType) {
                 case "SENT" -> "PIX".equals(transactionType) ? PIX_SENT_FAILED : TRANSACTION_FAILED;
                 case "RECEIVED" -> "PIX".equals(transactionType) ? PIX_RECEIVED_FAILED : TRANSACTION_FAILED;

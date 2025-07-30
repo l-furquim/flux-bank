@@ -25,10 +25,10 @@ public class PixKeyRepositoryJpaImpl implements PixKeyRepository {
     }
 
     @Override
-    public void createPixKey(PixKey pixkey) {
+    public PixKey createPixKey(PixKey pixkey) {
         PixKeyEntity keyToBePersisted = mapper.toEntity(pixkey);
 
-        repository.save(keyToBePersisted);
+        return mapper.toDomain(repository.save(keyToBePersisted));
     }
 
     @Override

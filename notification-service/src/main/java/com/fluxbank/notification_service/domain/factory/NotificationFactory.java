@@ -5,6 +5,7 @@ import com.fluxbank.notification_service.domain.enums.NotificationStatus;
 import com.fluxbank.notification_service.domain.enums.NotificationTopic;
 import com.fluxbank.notification_service.domain.enums.NotificationType;
 import com.fluxbank.notification_service.domain.model.Notification;
+import com.fluxbank.notification_service.interfaces.dto.PixkeyCreatedEventData;
 import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -15,14 +16,12 @@ import java.util.UUID;
 @Slf4j
 @Component
 public class NotificationFactory {
-    
-    private static final String MOCK_EMAIL_DOMAIN = "@fluxbank.com";
-    private static final String EMAIL = "furquimmsw@gmail.com";
 
     public Notification createFromTransactionEvent(
             TransactionNotificationEvent event, 
             NotificationEventType eventType,
-            UUID targetUserId) {
+            UUID targetUserId,
+            String targetUserEmail) {
         
         log.info("Creating notification for event: {} - user: {} - transaction: {}", 
             eventType, targetUserId, event.transactionId());
@@ -32,7 +31,7 @@ public class NotificationFactory {
         return Notification.builder()
                 .id(UUID.randomUUID())
                 .userId(targetUserId)
-                .subject(EMAIL)
+                .subject(targetUserEmail)
                 
                 .type(NotificationType.EMAIL)
                 .topic(mapEventTypeToTopic(eventType))
@@ -51,6 +50,42 @@ public class NotificationFactory {
                 .transactionProcessedAt(event.processedAt())
                 .failureReason(event.failureReason())
 
+                .createdAt(now)
+                .build();
+    }
+
+    public Notification createFromPixKeyCreatedEvent(
+            PixkeyCreatedEventData event,
+            UUID targetUserId) {
+
+        NotificationEventType notificationType = NotificationEventType.PIX_KEY_CREATED;
+
+        log.info("Creating notification for pix key created event: {} - user: {} - pixkey: {}",
+                notificationType , targetUserId, event.key());
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return Notification.builder()
+                .id(UUID.randomUUID())
+                .userId(targetUserId)
+                .subject(event.userEmail())
+
+                .type(NotificationType.EMAIL)
+                .topic(NotificationTopic.PIX_KEY_CREATED)
+                .status(NotificationStatus.PENDING)
+
+                .title(generateNotificationTitle(notificationType, null))
+                .content("")
+
+                .transactionId(null)
+                .transactionType(null)
+                .eventType(null)
+                .amount(null)
+                .currency(null)
+                .description(null)
+                .account(event.key())
+                .transactionProcessedAt(event.issuedAt())
+                .failureReason(null)
                 .createdAt(now)
                 .build();
     }
@@ -73,6 +108,7 @@ public class NotificationFactory {
     
     public Notification markAsFailed(Notification notification, String errorMessage) {
         return notification.builder()
+                .failureReason(errorMessage)
                 .status(NotificationStatus.FAILED)
                 .build();
     }

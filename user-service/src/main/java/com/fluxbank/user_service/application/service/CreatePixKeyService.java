@@ -9,7 +9,9 @@ import com.fluxbank.user_service.domain.model.PixKey;
 import com.fluxbank.user_service.domain.model.User;
 import com.fluxbank.user_service.domain.repository.PixKeyRepository;
 import com.fluxbank.user_service.domain.repository.UserRepository;
+import com.fluxbank.user_service.domain.service.MessagingService;
 import com.fluxbank.user_service.interfaces.dto.CreatePixKeyRequest;
+import com.fluxbank.user_service.interfaces.dto.PixkeyCreatedEventData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +25,12 @@ public class CreatePixKeyService implements CreatePixKeyUsecase {
 
     private final PixKeyRepository repository;
     private final UserRepository userRepository;
+    private final MessagingService messagingService;
 
-    public CreatePixKeyService(PixKeyRepository repository, UserRepository userRepository) {
+    public CreatePixKeyService(PixKeyRepository repository, UserRepository userRepository, MessagingService messagingService) {
         this.repository = repository;
         this.userRepository = userRepository;
+        this.messagingService = messagingService;
     }
 
     @Override
@@ -88,7 +92,19 @@ public class CreatePixKeyService implements CreatePixKeyUsecase {
 
         log.info("Key criada: {}", key);
 
-        repository.createPixKey(key);
+        PixKey savedKey = repository.createPixKey(key);
+
+        messagingService.publish(
+                new PixkeyCreatedEventData(
+                        userFounded.get().getCpf(),
+                        userFounded.get().getFullName(),
+                        userFounded.get().getId().toString(),
+                        userFounded.get().getEmail(),
+                        savedKey.getValue(),
+                        savedKey.getType().toString(),
+                        savedKey.getIssuedAt())
+        );
+
     }
 
     private boolean isValidEmail(String email) {

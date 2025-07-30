@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fluxbank.notification_service.application.usecase.SendNotificationUsecase;
 import com.fluxbank.notification_service.application.service.SnsMessageExtractor;
 import com.fluxbank.notification_service.interfaces.dto.ExtractedMessage;
+import com.fluxbank.notification_service.interfaces.dto.PixkeyCreatedEventData;
 import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationEvent;
 import io.awspring.cloud.sqs.annotation.SqsListener;
 import lombok.extern.slf4j.Slf4j;
@@ -33,16 +34,32 @@ public class NotificationConsumer {
             log.info("Extracted message from source: {} topic: {}", 
                 extractedMessage.eventSource(), extractedMessage.topicArn());
 
-            TransactionNotificationEvent event = mapper.readValue(
-                extractedMessage.messageContent(), 
-                TransactionNotificationEvent.class
-            );
+            switch (extractedMessage.eventSource()) {
+                case TRANSACTION_SERVICE ->  {
+                    TransactionNotificationEvent event = mapper.readValue(
+                            extractedMessage.messageContent(),
+                            TransactionNotificationEvent.class
+                    );
 
-            log.info("Notification event parsed: {} from {}", event.eventType(), extractedMessage.eventSource());
+                    log.info("Notification event parsed: {} from {}", event.eventType(), extractedMessage.eventSource());
 
-            usecase.send(event);
+                    usecase.sendTransactionUsecase(event);
+                }
+                case USER_SERVICE -> {
+                    PixkeyCreatedEventData event = mapper.readValue(
+                            extractedMessage.messageContent(),
+                            PixkeyCreatedEventData.class
+                    );
 
-            log.info("Notification event processed successfully: {}", event.transactionId());
+                    log.info("Notification event parsed from {} for pix key created", extractedMessage.eventSource());
+
+                    usecase.sendPixkeyCreatedUsecase(event);
+                }
+            }
+
+
+
+            log.info("Notification event processed successfully: {}", extractedMessage.eventSource());
 
         } catch (Exception e) {
             log.error("Error while processing notification message: {}", e.getMessage(), e);

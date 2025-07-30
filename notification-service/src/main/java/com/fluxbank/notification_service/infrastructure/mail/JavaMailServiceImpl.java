@@ -2,6 +2,7 @@ package com.fluxbank.notification_service.infrastructure.mail;
 
 import com.fluxbank.notification_service.domain.exceptions.SendMailFailedException;
 import com.fluxbank.notification_service.domain.service.MailService;
+import com.fluxbank.notification_service.interfaces.dto.PixkeyCreatedEventData;
 import com.fluxbank.notification_service.interfaces.dto.TransactionNotificationEvent;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -58,9 +59,13 @@ public class JavaMailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendPixKeyCreated() {
+    public void sendPixKeyCreated(PixkeyCreatedEventData event) {
         try {
-            log.info("PIX key created notification would be sent");
+            String subject = "Chave PIX criada com sucesso";
+            String htmlContent = buildPixKeyCreated(event);
+
+            sendEmail(event.userEmail(), subject, htmlContent);
+            log.info("Pix key created notification sent with success: {}", event.key());
         } catch (Exception e) {
             log.error("Failed to send PIX key created notification", e);
             throw new SendMailFailedException("Failed to send PIX key created notification" + e.getMessage());
@@ -129,6 +134,17 @@ public class JavaMailServiceImpl implements MailService {
                 .replace("{{idTransacao}}", event.transactionId().toString())
                 .replace("{{motivoFalha}}", event.failureReason() != null ? event.failureReason() : "Erro inesperado")
                 .replace("{{descricao}}", event.description() != null ? event.description() : "Transferência PIX");
+    }
+
+    private String buildPixKeyCreated(PixkeyCreatedEventData event) {
+        String template = loadTemplate("pix_key_created_template.html");
+
+        return template
+                .replace("{{tipoChave}}", event.type())
+                .replace("{{valorChave}}", event.key())
+                .replace("{{nomeTitular}}", event.userName())
+                .replace("{{cpfTitular}}", event.userCpf())
+                .replace("{{dataHoraCriacao}}", formatDateTime(event.issuedAt()));
     }
 
     private String buildPixSentTemplate(TransactionNotificationEvent event, String valueFormated) {
