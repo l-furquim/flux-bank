@@ -5,6 +5,7 @@ import com.fluxbank.transaction_service.messaging.producer.TransactionNotificati
 import com.fluxbank.transaction_service.messaging.producer.TransactionCompletedProducer;
 import com.fluxbank.transaction_service.messaging.producer.TransactionFailedProducer;
 import com.fluxbank.transaction_service.messaging.producer.TransactionInitiatedProducer;
+import com.fluxbank.transaction_service.model.ScheduledTransaction;
 import com.fluxbank.transaction_service.model.enums.TransactionDirection;
 import com.fluxbank.transaction_service.model.events.FraudCheckResponseEvent;
 import com.fluxbank.transaction_service.model.PixTransaction;
@@ -14,6 +15,8 @@ import com.fluxbank.transaction_service.model.events.TransactionEvent;
 import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionException;
 import com.fluxbank.transaction_service.model.exceptions.InvalidTransactionHistoryPageException;
 import com.fluxbank.transaction_service.repository.TransactionRepository;
+import com.fluxbank.transaction_service.scheduler.PixScheduleService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +24,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Slf4j
 @Service
 public class TransactionService {
@@ -36,18 +42,8 @@ public class TransactionService {
     private final TransactionInitiatedProducer initiatedProducer;
     private final TransactionCompletedProducer completedProducer;
     private final TransactionFailedProducer failedProducer;
+    private final PixScheduleService pixScheduleService;
     private final TransactionNotificationMapper notificationMapper;
-
-    public TransactionService(TransactionEventService eventService, TransactionRepository repository, UserClientService userClientService, WalletClientService walletClientService, TransactionInitiatedProducer initiatedProducer, TransactionCompletedProducer completedProducer, TransactionFailedProducer failedProducer, TransactionNotificationMapper notificationMapper) {
-        this.eventService = eventService;
-        this.repository = repository;
-        this.userClientService = userClientService;
-        this.walletClientService = walletClientService;
-        this.initiatedProducer = initiatedProducer;
-        this.completedProducer = completedProducer;
-        this.failedProducer = failedProducer;
-        this.notificationMapper = notificationMapper;
-    }
 
     public SendPixResponse sendPix(SendPixRequest request, String userId){
         if(request.amount().compareTo(BigDecimal.ZERO) <= 0) {
@@ -78,6 +74,56 @@ public class TransactionService {
                 transactionPersisted.getId(),
                 "Transaction processing initiated.",
                 issuedAt
+        );
+    }
+
+    public SchedulePixResponse schedulePix(SchedulePixRequest request, String userId){
+        if(request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidTransactionException("Invalid amount for the transaction.");
+        }
+        UUID payeeResolvedId = userClientService.resolvePixKey(request.pixKey());
+
+        LocalDate scheduledDate = LocalDate.parse(request.scheduledDate());
+        LocalTime scheduledTime = LocalTime.parse(request.scheduledTime());
+        LocalDateTime scheduledDateTime = LocalDateTime.of(scheduledDate, scheduledTime);
+
+        ScheduledTransaction transaction = new ScheduledTransaction(
+                request.currency(),
+                request.description(),
+                TransactionStatus.INITIATED,
+                request.amount(),
+                UUID.fromString(userId),
+                payeeResolvedId,
+                request.pixKey(),
+                scheduledDate,
+                scheduledDateTime,
+                request.recurrence()
+        );
+
+        Transaction transactionPersisted = repository.save(transaction);
+
+        TransactionEvent event = eventService.createTransactionEvent(transactionPersisted);
+
+        try {
+            initiatedProducer.publish(event);
+
+            pixScheduleService.schedulePixTransaction(transaction, event);
+
+        } catch (Exception e) {
+            transactionPersisted.setStatus(TransactionStatus.FAILED);
+            repository.save(transactionPersisted);
+
+            return new SchedulePixResponse(
+                    transactionPersisted.getId(),
+                    "Failed to schedule transaction: " + e.getMessage(),
+                    LocalDateTime.now()
+            );
+        }
+
+        return new SchedulePixResponse(
+                transactionPersisted.getId(),
+                "Scheduled transaction created.",
+                LocalDateTime.now()
         );
     }
 

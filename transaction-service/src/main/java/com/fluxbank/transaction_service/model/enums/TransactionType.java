@@ -6,6 +6,7 @@ public enum TransactionType {
     DEBIT,
     BLOCK,
     PIX,
+    SCHEDULED_PIX,
     UNBLOCK,
     REFUND,
     ADJUSTMENT

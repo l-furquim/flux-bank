@@ -64,11 +64,15 @@ resilience4j:
         baseConfig: default
 
 aws:
+  region: ${AWS_REGION:us-east-1}
   sns:
     transaction-initiated-topic: ${TRANSACTION_INITIATED_TOPIC}
     transaction-completed-topic: ${TRANSACTION_COMPLETED_TOPIC}
     transaction-failed-topic: ${TRANSACTION_FAILED_TOPIC}
-  region: ${AWS_REGION:us-east-1}
+  scheduler:
+    role-arn: ${SCHEDULER_ROLE_ARN}
+    schedule-group: fluxbank-pix-schedules
+    target-queue-arn: ${TRANSACTION_QUEUE_ARN}
 feign-client:
   wallet-uri: ${WALLET_SERVICE_URI:http://localhost:8081/api/v1/wallets}
   user-uri: ${USER_SERVICE_URI:http://localhost:8082/api/v1/users}
