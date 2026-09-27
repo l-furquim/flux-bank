@@ -1,0 +1,2 @@
+com.fluxbank.starter_context.FluxContextAutoConfiguration
+com.fluxbank.starter_context.OpenTelemetryTraceAutoConfiguration

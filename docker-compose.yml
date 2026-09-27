@@ -1,173 +1,28 @@
-x-aws-common: &aws-common
-  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-  AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-  AWS_REGION: ${AWS_REGION:-us-east-1}
-
 services:
   # Infrastructure
-  wallet-postgres:
-    image: postgres:latest
-    container_name: fluxbank-wallet-postgres
+  postgres:
+    image: postgres:18-alpine
+    container_name: fluxbank-postgres
     restart: unless-stopped
     ports:
       - 5432:5432
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: fluxbank
     volumes:
-      - fluxbank_wallet_postgres_data:/var/lib/postgresql/data
-    networks:
-      - fluxbank-database-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d fluxbank"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  user-postgres:
-    image: postgres:latest
-    container_name: fluxbank-user-postgres
-    restart: unless-stopped
-    ports:
-      - 5433:5432
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: fluxbank
-    volumes:
-      - fluxbank_user_postgres_data:/var/lib/postgresql/data
-    networks:
-      - fluxbank-database-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d fluxbank"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  transaction-postgres:
-    image: postgres:latest
-    container_name: fluxbank-transaction-postgres
-    restart: unless-stopped
-    ports:
-      - 5434:5432
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: fluxbank
-    volumes:
-      - fluxbank_transaction_postgres_data:/var/lib/postgresql/data
-    networks:
-      - fluxbank-database-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d fluxbank"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - postgres_data:/var/lib/postgresql
 
   redis:
-    image: redis:latest
+    image: redis
     container_name: fluxbank-redis
-    restart: unless-stopped
     ports:
       - 6379:6379
-    networks:
-      - fluxbank-cache-network
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  mongodb:
-    image: mongo:latest
-    container_name: fluxbank-mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-    ports:
-      - 27017:27017
-    volumes:
-      - fluxbank_mongodb_data:/var/lib/mongo/data
-    networks:
-      - fluxbank-database-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # Monitoring
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: fluxbank-prometheus
-    restart: unless-stopped
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./prometheus/prometheus_data:/prometheus
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--web.console.libraries=/etc/prometheus/console_libraries"
-      - "--web.console.templates=/etc/prometheus/consoles"
-      - "--web.enable-lifecycle"
-    ports:
-      - 9090:9090
-    networks:
-      - fluxbank-monit-network
-    user: root
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:9090/-/healthy",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  grafana:
-    image: grafana/grafana
-    container_name: fluxbank-grafana
-    volumes:
-      - fluxbank_grafana_data:/var/lib/grafana
-    restart: unless-stopped
-    ports:
-      - 3000:3000
-    networks:
-      - fluxbank-monit-network
-    depends_on:
-      - prometheus
-    user: root
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  #Services
-networks:
-  fluxbank-monit-network:
-#    internal: true
-    name: fluxbank-monit-network
-  fluxbank-message-network:
-#    internal: true
-    name: fluxbank-message-network
-  fluxbank-cache-network:
-#    internal: true
-    name: fluxbank-cache-network
-  fluxbank-database-network:
-#    internal: true
-    name: fluxbank-database-network
 
 volumes:
-  fluxbank_wallet_postgres_data:
-  fluxbank_user_postgres_data:
-  fluxbank_transaction_postgres_data:
-  fluxbank_mongodb_data:
-  fluxbank_grafana_data:
+  postgres_data:

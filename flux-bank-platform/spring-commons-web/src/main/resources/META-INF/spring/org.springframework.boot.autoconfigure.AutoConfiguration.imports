@@ -1,0 +1,3 @@
+com.fluxbank.commons_web.config.FluxWebAutoConfiguration
+com.fluxbank.commons_web.config.FluxRouteAutoConfiguration
+com.fluxbank.commons_web.config.FluxIdempotencyAutoConfiguration

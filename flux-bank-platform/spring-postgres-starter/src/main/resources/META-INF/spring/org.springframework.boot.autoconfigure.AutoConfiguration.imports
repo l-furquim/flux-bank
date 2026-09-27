@@ -1,0 +1,3 @@
+com.fluxbank.postgres_starter.PostgresProvisioningAutoConfiguration
+com.fluxbank.postgres_starter.PostgresAutoConfiguration
+com.fluxbank.postgres_starter.PostgresFlywayAutoConfiguration

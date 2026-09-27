@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: ledger_service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:redis}
+      password: ${REDIS_PASSWORD:redis}
+server:
+  port: 8080
+  servlet:
+    context-path: /api/${API_VERSION:v1}
+
+route:
+  internal: false
+  service-uri: ${ROUTE_SERVICE_URI:}
+
+fluxbank:
+  postgres:
+    database: ledger
+    username: root
+    password: root
+    host: localhost
+    provisioning:
+      enabled: true
+      bootstrap-user: root
+      bootstrap-password: root
+      bootstrap-database: postgres
